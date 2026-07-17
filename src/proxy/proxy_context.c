@@ -373,8 +373,12 @@ proxy_context_get_blob(struct virgl_context *base,
    }
 
    if (!reply_fd_count) {
+#if 1 // Webrogue
+      reply_fd = -1;
+#else
       proxy_log("invalid reply for blob %" PRIu64, blob_id);
       return -1;
+#endif
    }
 
    bool reply_fd_valid = false;
@@ -392,6 +396,9 @@ proxy_context_get_blob(struct virgl_context *base,
       reply_fd_valid = !add_required_seals_to_fd(reply_fd) &&
                        validate_resource_fd_shm(reply_fd, blob_size);
       break;
+   case VIRGL_RESOURCE_BUFFER:
+      reply_fd_valid = true;
+      break;
    default:
       break;
    }
@@ -404,6 +411,7 @@ proxy_context_get_blob(struct virgl_context *base,
    blob->type = reply.fd_type;
    blob->u.fd = reply_fd;
    blob->map_info = reply.map_info;
+   blob->mapped_ptr = (void *)reply.mapped_ptr;
 
    if (reply.fd_type == VIRGL_RESOURCE_FD_OPAQUE)
       blob->vulkan_info = reply.vulkan_info;

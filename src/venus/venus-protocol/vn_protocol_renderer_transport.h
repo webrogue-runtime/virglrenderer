@@ -17,6 +17,257 @@
 #pragma GCC diagnostic ignored "-Wpointer-arith"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+/* struct VkDeviceGroupSwapchainCreateInfoKHR chain */
+
+static inline void *
+vn_decode_VkDeviceGroupSwapchainCreateInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkDeviceGroupSwapchainCreateInfoKHR_self_temp(struct vn_cs_decoder *dec, VkDeviceGroupSwapchainCreateInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkFlags(dec, &val->modes);
+}
+
+static inline void
+vn_decode_VkDeviceGroupSwapchainCreateInfoKHR_temp(struct vn_cs_decoder *dec, VkDeviceGroupSwapchainCreateInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkDeviceGroupSwapchainCreateInfoKHR_pnext_temp(dec);
+    vn_decode_VkDeviceGroupSwapchainCreateInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkDeviceGroupSwapchainCreateInfoKHR_handle_self(VkDeviceGroupSwapchainCreateInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->modes */
+}
+
+static inline void
+vn_replace_VkDeviceGroupSwapchainCreateInfoKHR_handle(VkDeviceGroupSwapchainCreateInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR:
+            vn_replace_VkDeviceGroupSwapchainCreateInfoKHR_handle_self((VkDeviceGroupSwapchainCreateInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkSwapchainCreateInfoKHR chain */
+
+static inline void *
+vn_decode_VkSwapchainCreateInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkDeviceGroupSwapchainCreateInfoKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            ((VkDeviceGroupSwapchainCreateInfoKHR *)pnext)->pNext = vn_decode_VkSwapchainCreateInfoKHR_pnext_temp(dec);
+            vn_decode_VkDeviceGroupSwapchainCreateInfoKHR_self_temp(dec, (VkDeviceGroupSwapchainCreateInfoKHR *)pnext);
+        }
+        break;
+    case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkImageFormatListCreateInfo));
+        if (pnext) {
+            pnext->sType = stype;
+            ((VkImageFormatListCreateInfo *)pnext)->pNext = vn_decode_VkSwapchainCreateInfoKHR_pnext_temp(dec);
+            vn_decode_VkImageFormatListCreateInfo_self_temp(dec, (VkImageFormatListCreateInfo *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
+        vn_cs_decoder_set_fatal(dec);
+        break;
+    }
+
+    return pnext;
+}
+
+static inline void
+vn_decode_VkSwapchainCreateInfoKHR_self_temp(struct vn_cs_decoder *dec, VkSwapchainCreateInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkFlags(dec, &val->flags);
+    vn_decode_VkSurfaceKHR_lookup(dec, &val->surface);
+    vn_decode_uint32_t(dec, &val->minImageCount);
+    vn_decode_VkFormat(dec, &val->imageFormat);
+    vn_decode_VkColorSpaceKHR(dec, &val->imageColorSpace);
+    vn_decode_VkExtent2D_temp(dec, &val->imageExtent);
+    vn_decode_uint32_t(dec, &val->imageArrayLayers);
+    vn_decode_VkFlags(dec, &val->imageUsage);
+    vn_decode_VkSharingMode(dec, &val->imageSharingMode);
+    vn_decode_uint32_t(dec, &val->queueFamilyIndexCount);
+    if (vn_peek_array_size(dec)) {
+        const size_t array_size = vn_decode_array_size(dec, val->queueFamilyIndexCount);
+        val->pQueueFamilyIndices = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pQueueFamilyIndices), array_size);
+        if (!val->pQueueFamilyIndices) return;
+        vn_decode_uint32_t_array(dec, (uint32_t *)val->pQueueFamilyIndices, array_size);
+    } else {
+        vn_decode_array_size_unchecked(dec);
+        val->pQueueFamilyIndices = NULL;
+    }
+    vn_decode_VkSurfaceTransformFlagBitsKHR(dec, &val->preTransform);
+    vn_decode_VkCompositeAlphaFlagBitsKHR(dec, &val->compositeAlpha);
+    vn_decode_VkPresentModeKHR(dec, &val->presentMode);
+    vn_decode_VkBool32(dec, &val->clipped);
+    vn_decode_VkSwapchainKHR_lookup(dec, &val->oldSwapchain);
+}
+
+static inline void
+vn_decode_VkSwapchainCreateInfoKHR_temp(struct vn_cs_decoder *dec, VkSwapchainCreateInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkSwapchainCreateInfoKHR_pnext_temp(dec);
+    vn_decode_VkSwapchainCreateInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkSwapchainCreateInfoKHR_handle_self(VkSwapchainCreateInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->flags */
+    vn_replace_VkSurfaceKHR_handle(&val->surface);
+    /* skip val->minImageCount */
+    /* skip val->imageFormat */
+    /* skip val->imageColorSpace */
+    vn_replace_VkExtent2D_handle(&val->imageExtent);
+    /* skip val->imageArrayLayers */
+    /* skip val->imageUsage */
+    /* skip val->imageSharingMode */
+    /* skip val->queueFamilyIndexCount */
+    /* skip val->pQueueFamilyIndices */
+    /* skip val->preTransform */
+    /* skip val->compositeAlpha */
+    /* skip val->presentMode */
+    /* skip val->clipped */
+    vn_replace_VkSwapchainKHR_handle(&val->oldSwapchain);
+}
+
+static inline void
+vn_replace_VkSwapchainCreateInfoKHR_handle(VkSwapchainCreateInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR:
+            vn_replace_VkSwapchainCreateInfoKHR_handle_self((VkSwapchainCreateInfoKHR *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR:
+            vn_replace_VkDeviceGroupSwapchainCreateInfoKHR_handle_self((VkDeviceGroupSwapchainCreateInfoKHR *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
+            vn_replace_VkImageFormatListCreateInfo_handle_self((VkImageFormatListCreateInfo *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkAcquireNextImageInfoKHR chain */
+
+static inline void *
+vn_decode_VkAcquireNextImageInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkAcquireNextImageInfoKHR_self_temp(struct vn_cs_decoder *dec, VkAcquireNextImageInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkSwapchainKHR_lookup(dec, &val->swapchain);
+    vn_decode_uint64_t(dec, &val->timeout);
+    vn_decode_VkSemaphore_lookup(dec, &val->semaphore);
+    vn_decode_VkFence_lookup(dec, &val->fence);
+    vn_decode_uint32_t(dec, &val->deviceMask);
+}
+
+static inline void
+vn_decode_VkAcquireNextImageInfoKHR_temp(struct vn_cs_decoder *dec, VkAcquireNextImageInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkAcquireNextImageInfoKHR_pnext_temp(dec);
+    vn_decode_VkAcquireNextImageInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkAcquireNextImageInfoKHR_handle_self(VkAcquireNextImageInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    vn_replace_VkSwapchainKHR_handle(&val->swapchain);
+    /* skip val->timeout */
+    vn_replace_VkSemaphore_handle(&val->semaphore);
+    vn_replace_VkFence_handle(&val->fence);
+    /* skip val->deviceMask */
+}
+
+static inline void
+vn_replace_VkAcquireNextImageInfoKHR_handle(VkAcquireNextImageInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR:
+            vn_replace_VkAcquireNextImageInfoKHR_handle_self((VkAcquireNextImageInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkCommandStreamDescriptionMESA */
 
 static inline void
@@ -276,6 +527,209 @@ vn_replace_VkRingCreateInfoMESA_handle(VkRingCreateInfoMESA *val)
         }
         pnext = pnext->pNext;
     } while (pnext);
+}
+
+static inline void vn_decode_vkCreateSwapchainKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCreateSwapchainKHR *args)
+{
+    vn_decode_VkDevice_lookup(dec, &args->device);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pCreateInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pCreateInfo));
+        if (!args->pCreateInfo) return;
+        vn_decode_VkSwapchainCreateInfoKHR_temp(dec, (VkSwapchainCreateInfoKHR *)args->pCreateInfo);
+    } else {
+        args->pCreateInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+    if (vn_decode_simple_pointer(dec)) {
+        vn_cs_decoder_set_fatal(dec);
+    } else {
+        args->pAllocator = NULL;
+    }
+    if (vn_decode_simple_pointer(dec)) {
+        args->pSwapchain = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pSwapchain));
+        if (!args->pSwapchain) return;
+        vn_decode_VkSwapchainKHR(dec, args->pSwapchain);
+    } else {
+        args->pSwapchain = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkCreateSwapchainKHR_args_handle(struct vn_command_vkCreateSwapchainKHR *args)
+{
+    vn_replace_VkDevice_handle(&args->device);
+    if (args->pCreateInfo)
+        vn_replace_VkSwapchainCreateInfoKHR_handle((VkSwapchainCreateInfoKHR *)args->pCreateInfo);
+    /* skip args->pAllocator */
+    /* skip args->pSwapchain */
+}
+
+static inline void vn_encode_vkCreateSwapchainKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkCreateSwapchainKHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkCreateSwapchainKHR_EXT});
+
+    vn_encode_VkResult(enc, &args->ret);
+    /* skip args->device */
+    /* skip args->pCreateInfo */
+    /* skip args->pAllocator */
+    if (vn_encode_simple_pointer(enc, args->pSwapchain))
+        vn_encode_VkSwapchainKHR(enc, args->pSwapchain);
+}
+
+static inline void vn_decode_vkDestroySwapchainKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkDestroySwapchainKHR *args)
+{
+    vn_decode_VkDevice_lookup(dec, &args->device);
+    vn_decode_VkSwapchainKHR_lookup(dec, &args->swapchain);
+    if (vn_decode_simple_pointer(dec)) {
+        vn_cs_decoder_set_fatal(dec);
+    } else {
+        args->pAllocator = NULL;
+    }
+}
+
+static inline void vn_replace_vkDestroySwapchainKHR_args_handle(struct vn_command_vkDestroySwapchainKHR *args)
+{
+    vn_replace_VkDevice_handle(&args->device);
+    vn_replace_VkSwapchainKHR_handle(&args->swapchain);
+    /* skip args->pAllocator */
+}
+
+static inline void vn_encode_vkDestroySwapchainKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkDestroySwapchainKHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkDestroySwapchainKHR_EXT});
+
+    /* skip args->device */
+    /* skip args->swapchain */
+    /* skip args->pAllocator */
+}
+
+static inline void vn_decode_vkGetSwapchainImagesKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkGetSwapchainImagesKHR *args)
+{
+    vn_decode_VkDevice_lookup(dec, &args->device);
+    vn_decode_VkSwapchainKHR_lookup(dec, &args->swapchain);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pSwapchainImageCount = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pSwapchainImageCount));
+        if (!args->pSwapchainImageCount) return;
+        vn_decode_uint32_t(dec, args->pSwapchainImageCount);
+    } else {
+        args->pSwapchainImageCount = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+    if (vn_peek_array_size(dec)) {
+        const uint32_t iter_count = vn_decode_array_size(dec, (args->pSwapchainImageCount ? *args->pSwapchainImageCount : 0));
+        args->pSwapchainImages = vn_cs_decoder_alloc_temp_array(dec, sizeof(*args->pSwapchainImages), iter_count);
+        if (!args->pSwapchainImages) return;
+        for (uint32_t i = 0; i < iter_count; i++)
+            vn_decode_VkImage(dec, &args->pSwapchainImages[i]);
+    } else {
+        vn_decode_array_size_unchecked(dec);
+        args->pSwapchainImages = NULL;
+    }
+}
+
+static inline void vn_replace_vkGetSwapchainImagesKHR_args_handle(struct vn_command_vkGetSwapchainImagesKHR *args)
+{
+    vn_replace_VkDevice_handle(&args->device);
+    vn_replace_VkSwapchainKHR_handle(&args->swapchain);
+    /* skip args->pSwapchainImageCount */
+    /* skip args->pSwapchainImages */
+}
+
+static inline void vn_encode_vkGetSwapchainImagesKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkGetSwapchainImagesKHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkGetSwapchainImagesKHR_EXT});
+
+    vn_encode_VkResult(enc, &args->ret);
+    /* skip args->device */
+    /* skip args->swapchain */
+    if (vn_encode_simple_pointer(enc, args->pSwapchainImageCount))
+        vn_encode_uint32_t(enc, args->pSwapchainImageCount);
+    if (args->pSwapchainImages) {
+        vn_encode_array_size(enc, (args->pSwapchainImageCount ? *args->pSwapchainImageCount : 0));
+        for (uint32_t i = 0; i < (args->pSwapchainImageCount ? *args->pSwapchainImageCount : 0); i++)
+            vn_encode_VkImage(enc, &args->pSwapchainImages[i]);
+    } else {
+        vn_encode_array_size(enc, 0);
+    }
+}
+
+static inline void vn_decode_vkAcquireNextImageKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkAcquireNextImageKHR *args)
+{
+    vn_decode_VkDevice_lookup(dec, &args->device);
+    vn_decode_VkSwapchainKHR_lookup(dec, &args->swapchain);
+    vn_decode_uint64_t(dec, &args->timeout);
+    vn_decode_VkSemaphore_lookup(dec, &args->semaphore);
+    vn_decode_VkFence_lookup(dec, &args->fence);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pImageIndex = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pImageIndex));
+        if (!args->pImageIndex) return;
+    } else {
+        args->pImageIndex = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkAcquireNextImageKHR_args_handle(struct vn_command_vkAcquireNextImageKHR *args)
+{
+    vn_replace_VkDevice_handle(&args->device);
+    vn_replace_VkSwapchainKHR_handle(&args->swapchain);
+    /* skip args->timeout */
+    vn_replace_VkSemaphore_handle(&args->semaphore);
+    vn_replace_VkFence_handle(&args->fence);
+    /* skip args->pImageIndex */
+}
+
+static inline void vn_encode_vkAcquireNextImageKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkAcquireNextImageKHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkAcquireNextImageKHR_EXT});
+
+    vn_encode_VkResult(enc, &args->ret);
+    /* skip args->device */
+    /* skip args->swapchain */
+    /* skip args->timeout */
+    /* skip args->semaphore */
+    /* skip args->fence */
+    if (vn_encode_simple_pointer(enc, args->pImageIndex))
+        vn_encode_uint32_t(enc, args->pImageIndex);
+}
+
+static inline void vn_decode_vkAcquireNextImage2KHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkAcquireNextImage2KHR *args)
+{
+    vn_decode_VkDevice_lookup(dec, &args->device);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pAcquireInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pAcquireInfo));
+        if (!args->pAcquireInfo) return;
+        vn_decode_VkAcquireNextImageInfoKHR_temp(dec, (VkAcquireNextImageInfoKHR *)args->pAcquireInfo);
+    } else {
+        args->pAcquireInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+    if (vn_decode_simple_pointer(dec)) {
+        args->pImageIndex = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pImageIndex));
+        if (!args->pImageIndex) return;
+    } else {
+        args->pImageIndex = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkAcquireNextImage2KHR_args_handle(struct vn_command_vkAcquireNextImage2KHR *args)
+{
+    vn_replace_VkDevice_handle(&args->device);
+    if (args->pAcquireInfo)
+        vn_replace_VkAcquireNextImageInfoKHR_handle((VkAcquireNextImageInfoKHR *)args->pAcquireInfo);
+    /* skip args->pImageIndex */
+}
+
+static inline void vn_encode_vkAcquireNextImage2KHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkAcquireNextImage2KHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkAcquireNextImage2KHR_EXT});
+
+    vn_encode_VkResult(enc, &args->ret);
+    /* skip args->device */
+    /* skip args->pAcquireInfo */
+    if (vn_encode_simple_pointer(enc, args->pImageIndex))
+        vn_encode_uint32_t(enc, args->pImageIndex);
 }
 
 static inline void vn_decode_vkCreateDeferredOperationKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkCreateDeferredOperationKHR *args)
@@ -656,6 +1110,178 @@ static inline void vn_encode_vkWaitRingSeqnoMESA_reply(struct vn_cs_encoder *enc
 
     /* skip args->ring */
     /* skip args->seqno */
+}
+
+static inline void vn_dispatch_vkCreateSwapchainKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkCreateSwapchainKHR args;
+
+    if (!ctx->dispatch_vkCreateSwapchainKHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkCreateSwapchainKHR_args_temp(ctx->decoder, &args);
+    if (!args.device) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkCreateSwapchainKHR(ctx, &args);
+
+#ifdef DEBUG
+    if (!vn_cs_decoder_get_fatal(ctx->decoder) && vn_dispatch_should_log_result(args.ret))
+        vn_dispatch_debug_log(ctx, "vkCreateSwapchainKHR returned %d", args.ret);
+#endif
+
+    if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkCreateSwapchainKHR_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
+    } else if (args.ret == VK_ERROR_DEVICE_LOST) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkDestroySwapchainKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkDestroySwapchainKHR args;
+
+    if (!ctx->dispatch_vkDestroySwapchainKHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkDestroySwapchainKHR_args_temp(ctx->decoder, &args);
+    if (!args.device) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkDestroySwapchainKHR(ctx, &args);
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkDestroySwapchainKHR_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkGetSwapchainImagesKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkGetSwapchainImagesKHR args;
+
+    if (!ctx->dispatch_vkGetSwapchainImagesKHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkGetSwapchainImagesKHR_args_temp(ctx->decoder, &args);
+    if (!args.device) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkGetSwapchainImagesKHR(ctx, &args);
+
+#ifdef DEBUG
+    if (!vn_cs_decoder_get_fatal(ctx->decoder) && vn_dispatch_should_log_result(args.ret))
+        vn_dispatch_debug_log(ctx, "vkGetSwapchainImagesKHR returned %d", args.ret);
+#endif
+
+    if ((flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) && !vn_cs_decoder_get_fatal(ctx->decoder)) {
+        if (vn_cs_encoder_acquire(ctx->encoder)) {
+            vn_encode_vkGetSwapchainImagesKHR_reply(ctx->encoder, &args);
+            vn_cs_encoder_release(ctx->encoder);
+        }
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkAcquireNextImageKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkAcquireNextImageKHR args;
+
+    if (!ctx->dispatch_vkAcquireNextImageKHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkAcquireNextImageKHR_args_temp(ctx->decoder, &args);
+    if (!args.device) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkAcquireNextImageKHR(ctx, &args);
+
+#ifdef DEBUG
+    if (!vn_cs_decoder_get_fatal(ctx->decoder) && vn_dispatch_should_log_result(args.ret))
+        vn_dispatch_debug_log(ctx, "vkAcquireNextImageKHR returned %d", args.ret);
+#endif
+
+    if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkAcquireNextImageKHR_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
+    } else if (args.ret == VK_ERROR_DEVICE_LOST) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkAcquireNextImage2KHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkAcquireNextImage2KHR args;
+
+    if (!ctx->dispatch_vkAcquireNextImage2KHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkAcquireNextImage2KHR_args_temp(ctx->decoder, &args);
+    if (!args.device) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkAcquireNextImage2KHR(ctx, &args);
+
+#ifdef DEBUG
+    if (!vn_cs_decoder_get_fatal(ctx->decoder) && vn_dispatch_should_log_result(args.ret))
+        vn_dispatch_debug_log(ctx, "vkAcquireNextImage2KHR returned %d", args.ret);
+#endif
+
+    if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkAcquireNextImage2KHR_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
+    } else if (args.ret == VK_ERROR_DEVICE_LOST) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
 }
 
 static inline void vn_dispatch_vkCreateDeferredOperationKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)

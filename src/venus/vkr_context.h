@@ -31,6 +31,10 @@ struct vkr_resource {
       uint8_t *data;
    } u;
 
+   void *host_visible_ptr;
+
+   uint64_t webrogue_mem_id;
+
    size_t size;
 };
 
@@ -143,6 +147,17 @@ vkr_context_import_resource(struct vkr_context *ctx,
 
 void
 vkr_context_destroy_resource(struct vkr_context *ctx, uint32_t res_id);
+
+/* Returns a host pointer to the resource storage, used by the webrogue shadow
+ * blob path to copy with the guest.  Returns NULL if the resource does not
+ * exist or cannot provide a host pointer.
+ *
+ * For shm resources the already mapped u.data is returned.  For dma_buf fds a
+ * mapping is created on demand and cached in res->webrogue_mmap_ptr until the
+ * resource is destroyed.
+ */
+void *
+vkr_context_get_blob_host_ptr(struct vkr_context *ctx, uint32_t res_id);
 
 static inline struct vkr_resource *
 vkr_context_get_resource(struct vkr_context *ctx, uint32_t res_id)

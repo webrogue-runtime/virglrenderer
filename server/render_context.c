@@ -109,10 +109,12 @@ render_context_dispatch_create_resource(struct render_context *ctx,
       .fd_type = VIRGL_RESOURCE_FD_INVALID,
    };
    int res_fd;
+   void* mapped_ptr;
    bool ok = render_state_create_resource(ctx->ctx_id, req->res_id, req->blob_id,
                                           req->blob_size, req->blob_flags, &reply.fd_type,
-                                          &res_fd, &reply.map_info, &reply.vulkan_info);
-   if (!ok)
+                                          &res_fd, &reply.map_info, &reply.vulkan_info, &mapped_ptr);
+   reply.mapped_ptr = (uint64_t)mapped_ptr;
+   if (!ok || res_fd < 0)
       return render_socket_send_reply(&ctx->socket, &reply, sizeof(reply));
 
    ok =

@@ -96,6 +96,63 @@ vn_replace_VkExternalMemoryImageCreateInfo_handle(VkExternalMemoryImageCreateInf
     } while (pnext);
 }
 
+/* struct VkImageSwapchainCreateInfoKHR chain */
+
+static inline void *
+vn_decode_VkImageSwapchainCreateInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkImageSwapchainCreateInfoKHR_self_temp(struct vn_cs_decoder *dec, VkImageSwapchainCreateInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkSwapchainKHR_lookup(dec, &val->swapchain);
+}
+
+static inline void
+vn_decode_VkImageSwapchainCreateInfoKHR_temp(struct vn_cs_decoder *dec, VkImageSwapchainCreateInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkImageSwapchainCreateInfoKHR_pnext_temp(dec);
+    vn_decode_VkImageSwapchainCreateInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkImageSwapchainCreateInfoKHR_handle_self(VkImageSwapchainCreateInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    vn_replace_VkSwapchainKHR_handle(&val->swapchain);
+}
+
+static inline void
+vn_replace_VkImageSwapchainCreateInfoKHR_handle(VkImageSwapchainCreateInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR:
+            vn_replace_VkImageSwapchainCreateInfoKHR_handle_self((VkImageSwapchainCreateInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkImageDrmFormatModifierListCreateInfoEXT chain */
 
 static inline void *
@@ -363,6 +420,14 @@ vn_decode_VkImageCreateInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkExternalMemoryImageCreateInfo_self_temp(dec, (VkExternalMemoryImageCreateInfo *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkImageSwapchainCreateInfoKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            ((VkImageSwapchainCreateInfoKHR *)pnext)->pNext = vn_decode_VkImageCreateInfo_pnext_temp(dec);
+            vn_decode_VkImageSwapchainCreateInfoKHR_self_temp(dec, (VkImageSwapchainCreateInfoKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkImageFormatListCreateInfo));
         if (pnext) {
@@ -486,6 +551,9 @@ vn_replace_VkImageCreateInfo_handle(VkImageCreateInfo *val)
         case VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO:
             vn_replace_VkExternalMemoryImageCreateInfo_handle_self((VkExternalMemoryImageCreateInfo *)pnext);
             break;
+        case VK_STRUCTURE_TYPE_IMAGE_SWAPCHAIN_CREATE_INFO_KHR:
+            vn_replace_VkImageSwapchainCreateInfoKHR_handle_self((VkImageSwapchainCreateInfoKHR *)pnext);
+            break;
         case VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO:
             vn_replace_VkImageFormatListCreateInfo_handle_self((VkImageFormatListCreateInfo *)pnext);
             break;
@@ -592,6 +660,65 @@ vn_replace_VkBindImageMemoryDeviceGroupInfo_handle(VkBindImageMemoryDeviceGroupI
     } while (pnext);
 }
 
+/* struct VkBindImageMemorySwapchainInfoKHR chain */
+
+static inline void *
+vn_decode_VkBindImageMemorySwapchainInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkBindImageMemorySwapchainInfoKHR_self_temp(struct vn_cs_decoder *dec, VkBindImageMemorySwapchainInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_VkSwapchainKHR_lookup(dec, &val->swapchain);
+    vn_decode_uint32_t(dec, &val->imageIndex);
+}
+
+static inline void
+vn_decode_VkBindImageMemorySwapchainInfoKHR_temp(struct vn_cs_decoder *dec, VkBindImageMemorySwapchainInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkBindImageMemorySwapchainInfoKHR_pnext_temp(dec);
+    vn_decode_VkBindImageMemorySwapchainInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkBindImageMemorySwapchainInfoKHR_handle_self(VkBindImageMemorySwapchainInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    vn_replace_VkSwapchainKHR_handle(&val->swapchain);
+    /* skip val->imageIndex */
+}
+
+static inline void
+vn_replace_VkBindImageMemorySwapchainInfoKHR_handle(VkBindImageMemorySwapchainInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR:
+            vn_replace_VkBindImageMemorySwapchainInfoKHR_handle_self((VkBindImageMemorySwapchainInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkBindImagePlaneMemoryInfo chain */
 
 static inline void *
@@ -670,6 +797,14 @@ vn_decode_VkBindImageMemoryInfo_pnext_temp(struct vn_cs_decoder *dec)
             vn_decode_VkBindImageMemoryDeviceGroupInfo_self_temp(dec, (VkBindImageMemoryDeviceGroupInfo *)pnext);
         }
         break;
+    case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkBindImageMemorySwapchainInfoKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            ((VkBindImageMemorySwapchainInfoKHR *)pnext)->pNext = vn_decode_VkBindImageMemoryInfo_pnext_temp(dec);
+            vn_decode_VkBindImageMemorySwapchainInfoKHR_self_temp(dec, (VkBindImageMemorySwapchainInfoKHR *)pnext);
+        }
+        break;
     case VK_STRUCTURE_TYPE_BIND_IMAGE_PLANE_MEMORY_INFO:
         pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkBindImagePlaneMemoryInfo));
         if (pnext) {
@@ -740,6 +875,9 @@ vn_replace_VkBindImageMemoryInfo_handle(VkBindImageMemoryInfo *val)
             break;
         case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_DEVICE_GROUP_INFO:
             vn_replace_VkBindImageMemoryDeviceGroupInfo_handle_self((VkBindImageMemoryDeviceGroupInfo *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR:
+            vn_replace_VkBindImageMemorySwapchainInfoKHR_handle_self((VkBindImageMemorySwapchainInfoKHR *)pnext);
             break;
         case VK_STRUCTURE_TYPE_BIND_IMAGE_PLANE_MEMORY_INFO:
             vn_replace_VkBindImagePlaneMemoryInfo_handle_self((VkBindImagePlaneMemoryInfo *)pnext);

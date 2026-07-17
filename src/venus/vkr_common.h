@@ -148,6 +148,8 @@ struct vkr_object {
       VkPipelineLayout pipeline_layout;
       VkPipeline pipeline;
       VkRenderPass render_pass;
+      VkSurfaceKHR surface;
+      VkSwapchainKHR swapchain;
       VkDescriptorSetLayout descriptor_set_layout;
       VkSampler sampler;
       VkDescriptorSet descriptor_set;
@@ -273,6 +275,8 @@ vkr_is_recognized_object_type(VkObjectType type)
    case VK_OBJECT_TYPE_DESCRIPTOR_SET:
    case VK_OBJECT_TYPE_FRAMEBUFFER:
    case VK_OBJECT_TYPE_COMMAND_POOL:
+   case VK_OBJECT_TYPE_SURFACE_KHR:
+   case VK_OBJECT_TYPE_SWAPCHAIN_KHR:
    /* VK_VERSION_1_1 */
    case VK_OBJECT_TYPE_SAMPLER_YCBCR_CONVERSION:
    case VK_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE:

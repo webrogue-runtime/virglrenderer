@@ -1198,6 +1198,16 @@ int virgl_renderer_resource_create_blob(const struct virgl_renderer_resource_cre
    if (ret)
       return ret;
 
+#if 1 // Webrogue
+   if (blob.mapped_ptr) {
+      struct iovec *iov = malloc(sizeof(struct iovec));
+      iov[0].iov_base = blob.mapped_ptr;
+      iov[0].iov_len = args->size;
+      res = virgl_resource_create_from_iov(args->res_handle, iov, 1);
+      if (!res)
+         return -ENOMEM;
+   } else
+#endif
    if (blob.type == VIRGL_RESOURCE_OPAQUE_HANDLE) {
       assert(!(args->blob_flags & VIRGL_RENDERER_BLOB_FLAG_USE_SHAREABLE));
       res = virgl_resource_create_from_opaque_handle(ctx, args->res_handle, blob.u.opaque_handle);
@@ -1273,6 +1283,7 @@ int virgl_renderer_resource_map(uint32_t res_handle, void **out_map, uint64_t *o
          map = ctx->resource_map(ctx, res, NULL, PROT_WRITE | PROT_READ, MAP_SHARED);
          map_size = res->map_size;
          break;
+      case VIRGL_RESOURCE_BUFFER:
       case VIRGL_RESOURCE_FD_INVALID:
          /* Avoid a default case so that -Wswitch will tell us at compile time
           * if a new virgl resource type is added without being handled here.
@@ -1328,6 +1339,7 @@ int virgl_renderer_resource_map_fixed(uint32_t res_handle, void *addr)
                                  MAP_FIXED | MAP_SHARED);
          break;
       case VIRGL_RESOURCE_FD_OPAQUE:
+      case VIRGL_RESOURCE_BUFFER:
       case VIRGL_RESOURCE_FD_INVALID:
          /* Avoid a default case so that -Wswitch will tell us at compile time
           * if a new virgl resource type is added without being handled here.
@@ -1368,6 +1380,7 @@ int virgl_renderer_resource_unmap(uint32_t res_handle)
       case VIRGL_RESOURCE_FD_OPAQUE:
          ret = vkr_allocator_resource_unmap(res);
          break;
+      case VIRGL_RESOURCE_BUFFER:
       case VIRGL_RESOURCE_FD_INVALID:
          /* Avoid a default case so that -Wswitch will tell us at compile time
           * if a new virgl resource type is added without being handled here.
@@ -1416,6 +1429,7 @@ virgl_renderer_resource_export_blob(uint32_t res_id, uint32_t *fd_type, int *fd)
       *fd_type = VIRGL_RENDERER_BLOB_FD_TYPE_SHM;
       break;
    case VIRGL_RESOURCE_OPAQUE_HANDLE:
+   case VIRGL_RESOURCE_BUFFER:
    case VIRGL_RESOURCE_FD_INVALID:
       /* Avoid a default case so that -Wswitch will tell us at compile time if a
        * new virgl resource type is added without being handled here.

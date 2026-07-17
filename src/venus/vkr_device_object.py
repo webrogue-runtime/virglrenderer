@@ -24,6 +24,25 @@ vkr_{create_func_name}_create_driver_handle(
 }}
 '''
 
+SIMPLE_INSTANCE_OBJECT_CREATE_DRIVER_HANDLE_TEMPL = '''
+/* create a driver {vk_type} and update the vkr_{vkr_type} */
+static inline VkResult
+vkr_{create_func_name}_create_driver_handle(
+   UNUSED struct vkr_context *ctx,
+   struct vn_command_{create_cmd} *args,
+   struct vkr_{vkr_type} *obj)
+{{
+   struct vkr_instance *instance = vkr_instance_from_handle(args->instance);
+   struct vn_instance_proc_table *vk = &instance->proc_table;
+
+   /* handles in args are replaced */
+   vn_replace_{create_cmd}_args_handle(args);
+   args->ret = vk->{proc_create}(args->instance, args->{create_info}, NULL,
+      &obj->base.handle.{vkr_type});
+   return args->ret;
+}}
+'''
+
 POOL_OBJECT_CREATE_DRIVER_HANDLES_TEMPL = '''
 /* create an array of driver {vk_type}s from a pool and update the
  * object_array
@@ -98,6 +117,22 @@ vkr_{destroy_func_name}_destroy_driver_handle(
    /* handles in args are replaced */
    vn_replace_{destroy_cmd}_args_handle(args);
    vk->{proc_destroy}(args->device, args->{destroy_obj}, NULL);
+}}
+'''
+
+SIMPLE_INSTANCE_OBJECT_DESTROY_DRIVER_HANDLE_TEMPL = '''
+/* destroy a driver {vk_type} */
+static inline void
+vkr_{destroy_func_name}_destroy_driver_handle(
+   UNUSED struct vkr_context *ctx,
+   struct vn_command_{destroy_cmd} *args)
+{{
+   struct vkr_instance *instance = vkr_instance_from_handle(args->instance);
+   struct vn_instance_proc_table *vk = &instance->proc_table;
+
+   /* handles in args are replaced */
+   vn_replace_{destroy_cmd}_args_handle(args);
+   vk->{proc_destroy}(args->instance, args->{destroy_obj}, NULL);
 }}
 '''
 
@@ -346,6 +381,21 @@ def simple_object_generator(json_obj):
 
     return contents
 
+def simple_instance_object_generator(json_obj):
+    contents = ''
+
+    contents += SIMPLE_INSTANCE_OBJECT_CREATE_DRIVER_HANDLE_TEMPL.format(**json_obj)
+    contents += SIMPLE_OBJECT_CREATE_TEMPL.format(**json_obj)
+
+    contents += SIMPLE_INSTANCE_OBJECT_DESTROY_DRIVER_HANDLE_TEMPL.format(**json_obj)
+
+    for json_variant in json_obj['variants']:
+        tmp_obj = apply_variant(json_obj, json_variant)
+        contents += SIMPLE_OBJECT_CREATE_DRIVER_HANDLE_TEMPL.format(**tmp_obj)
+        contents += SIMPLE_OBJECT_CREATE_TEMPL.format(**tmp_obj)
+
+    return contents
+
 def pool_object_generator(json_obj):
     '''Generate functions for a pool object.
 
@@ -431,6 +481,7 @@ def pipeline_object_generator(json_obj):
 
 object_generators = {
     'simple-object': simple_object_generator,
+    'simple-instance-object': simple_instance_object_generator,
     'pool-object': pool_object_generator,
     'pipeline-object': pipeline_object_generator,
 }

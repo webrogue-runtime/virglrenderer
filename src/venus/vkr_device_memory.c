@@ -294,6 +294,10 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
     */
    const uint32_t property_flags =
       physical_dev->memory_properties.memoryTypes[mem_type_index].propertyFlags;
+   if (property_flags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
+      alloc_info->allocationSize =
+         align(alloc_info->allocationSize, 16 * 1024);
+   }
    uint32_t valid_fd_types = 0;
    int udmabuf_fd = -1;
    void *gbm_bo = NULL;
@@ -312,6 +316,9 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
          !(export_info->handleTypes & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
       const bool force_gbm_import = !!physical_dev->gbm_device;
       const bool force_udmabuf_import = physical_dev->udmabuf_dev_fd >= 0;
+      // if(true) { // Webrogue
+
+      // } else 
       if (!(force_gbm_import || force_udmabuf_import) &&
           (physical_dev->is_dma_buf_fd_export_supported ||
            (physical_dev->is_opaque_fd_export_supported && no_dma_buf_export))) {
@@ -528,6 +535,12 @@ vkr_context_init_device_memory_dispatch(struct vkr_context *ctx)
 void
 vkr_device_memory_release(struct vkr_device_memory *mem)
 {
+   if (mem->webrogue_mapped) {
+      struct vn_device_proc_table *vk = &mem->device->proc_table;
+      vk->UnmapMemory(mem->device->base.handle.device,
+                      mem->base.handle.device_memory);
+      mem->webrogue_mapped = false;
+   }
    vkr_mtl_shm_free(mem->mtl_shm);
    if (mem->gbm_bo)
       vkr_gbm_bo_destroy(mem->gbm_bo);
@@ -612,7 +625,21 @@ vkr_device_memory_export_blob(struct vkr_device_memory *mem,
       return false;
    }
 
+   void* mapped_ptr = NULL;
    int fd;
+#if 1 // Webrogue
+   if (true) {
+      struct vn_device_proc_table *vk = &mem->device->proc_table;
+      VkResult ret = vk->MapMemory(mem->device->base.handle.device, mem->base.handle.device_memory, 0,
+                    mem->allocation_size, 0, &mapped_ptr);
+      fd = -1; 
+      if (ret != VK_SUCCESS) {
+         vkr_log("mem fd export failed (vk ret %d)", ret);
+         return false;
+      }
+      mem->webrogue_mapped = true;
+   } else 
+#endif
    if (mem->udmabuf_fd >= 0) {
       fd = os_dupfd_cloexec(mem->udmabuf_fd);
       if (fd < 0) {
@@ -642,7 +669,7 @@ vkr_device_memory_export_blob(struct vkr_device_memory *mem,
       }
    }
 
-   if (fd_type == VIRGL_RESOURCE_FD_DMABUF) {
+   if (fd_type == VIRGL_RESOURCE_FD_DMABUF && !mapped_ptr) {
       const off_t dma_buf_size = lseek(fd, 0, SEEK_END);
       if (dma_buf_size < 0 || (uint64_t)dma_buf_size < blob_size) {
          vkr_log("mem dma_buf_size %lld < blob_size %" PRIu64, (long long)dma_buf_size,
@@ -659,6 +686,7 @@ vkr_device_memory_export_blob(struct vkr_device_memory *mem,
       .u.fd = fd,
       .map_info = map_info,
       .vulkan_info = vulkan_info,
+      .mapped_ptr = mapped_ptr,
    };
 
    return true;

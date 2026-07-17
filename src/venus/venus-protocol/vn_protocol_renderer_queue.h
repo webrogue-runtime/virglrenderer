@@ -767,6 +767,205 @@ vn_replace_VkBindSparseInfo_handle(VkBindSparseInfo *val)
     } while (pnext);
 }
 
+/* struct VkDeviceGroupPresentInfoKHR chain */
+
+static inline void *
+vn_decode_VkDeviceGroupPresentInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    /* no known/supported struct */
+    if (vn_decode_simple_pointer(dec))
+        vn_cs_decoder_set_fatal(dec);
+    return NULL;
+}
+
+static inline void
+vn_decode_VkDeviceGroupPresentInfoKHR_self_temp(struct vn_cs_decoder *dec, VkDeviceGroupPresentInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_uint32_t(dec, &val->swapchainCount);
+    if (vn_peek_array_size(dec)) {
+        const size_t array_size = vn_decode_array_size(dec, val->swapchainCount);
+        val->pDeviceMasks = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pDeviceMasks), array_size);
+        if (!val->pDeviceMasks) return;
+        vn_decode_uint32_t_array(dec, (uint32_t *)val->pDeviceMasks, array_size);
+    } else {
+        vn_decode_array_size(dec, val->swapchainCount);
+        val->pDeviceMasks = NULL;
+    }
+    vn_decode_VkDeviceGroupPresentModeFlagBitsKHR(dec, &val->mode);
+}
+
+static inline void
+vn_decode_VkDeviceGroupPresentInfoKHR_temp(struct vn_cs_decoder *dec, VkDeviceGroupPresentInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkDeviceGroupPresentInfoKHR_pnext_temp(dec);
+    vn_decode_VkDeviceGroupPresentInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkDeviceGroupPresentInfoKHR_handle_self(VkDeviceGroupPresentInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->swapchainCount */
+    /* skip val->pDeviceMasks */
+    /* skip val->mode */
+}
+
+static inline void
+vn_replace_VkDeviceGroupPresentInfoKHR_handle(VkDeviceGroupPresentInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR:
+            vn_replace_VkDeviceGroupPresentInfoKHR_handle_self((VkDeviceGroupPresentInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
+/* struct VkPresentInfoKHR chain */
+
+static inline void *
+vn_decode_VkPresentInfoKHR_pnext_temp(struct vn_cs_decoder *dec)
+{
+    VkBaseOutStructure *pnext;
+    VkStructureType stype;
+
+    if (!vn_decode_simple_pointer(dec))
+        return NULL;
+
+    vn_decode_VkStructureType(dec, &stype);
+    switch ((int32_t)stype) {
+    case VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR:
+        pnext = vn_cs_decoder_alloc_temp(dec, sizeof(VkDeviceGroupPresentInfoKHR));
+        if (pnext) {
+            pnext->sType = stype;
+            ((VkDeviceGroupPresentInfoKHR *)pnext)->pNext = vn_decode_VkPresentInfoKHR_pnext_temp(dec);
+            vn_decode_VkDeviceGroupPresentInfoKHR_self_temp(dec, (VkDeviceGroupPresentInfoKHR *)pnext);
+        }
+        break;
+    default:
+        /* unexpected struct */
+        pnext = NULL;
+        vn_cs_decoder_set_fatal(dec);
+        break;
+    }
+
+    return pnext;
+}
+
+static inline void
+vn_decode_VkPresentInfoKHR_self_temp(struct vn_cs_decoder *dec, VkPresentInfoKHR *val)
+{
+    /* skip val->{sType,pNext} */
+    vn_decode_uint32_t(dec, &val->waitSemaphoreCount);
+    if (vn_peek_array_size(dec)) {
+        const uint32_t iter_count = vn_decode_array_size(dec, val->waitSemaphoreCount);
+        val->pWaitSemaphores = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pWaitSemaphores), iter_count);
+        if (!val->pWaitSemaphores) return;
+        for (uint32_t i = 0; i < iter_count; i++)
+            vn_decode_VkSemaphore_lookup(dec, &((VkSemaphore *)val->pWaitSemaphores)[i]);
+    } else {
+        vn_decode_array_size(dec, val->waitSemaphoreCount);
+        val->pWaitSemaphores = NULL;
+    }
+    vn_decode_uint32_t(dec, &val->swapchainCount);
+    if (vn_peek_array_size(dec)) {
+        const uint32_t iter_count = vn_decode_array_size(dec, val->swapchainCount);
+        val->pSwapchains = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pSwapchains), iter_count);
+        if (!val->pSwapchains) return;
+        for (uint32_t i = 0; i < iter_count; i++)
+            vn_decode_VkSwapchainKHR_lookup(dec, &((VkSwapchainKHR *)val->pSwapchains)[i]);
+    } else {
+        vn_decode_array_size(dec, val->swapchainCount);
+        val->pSwapchains = NULL;
+    }
+    if (vn_peek_array_size(dec)) {
+        const size_t array_size = vn_decode_array_size(dec, val->swapchainCount);
+        val->pImageIndices = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pImageIndices), array_size);
+        if (!val->pImageIndices) return;
+        vn_decode_uint32_t_array(dec, (uint32_t *)val->pImageIndices, array_size);
+    } else {
+        vn_decode_array_size(dec, val->swapchainCount);
+        val->pImageIndices = NULL;
+    }
+    if (vn_peek_array_size(dec)) {
+        const size_t array_size = vn_decode_array_size(dec, val->swapchainCount);
+        val->pResults = vn_cs_decoder_alloc_temp_array(dec, sizeof(*val->pResults), array_size);
+        if (!val->pResults) return;
+        vn_decode_VkResult_array(dec, val->pResults, array_size);
+    } else {
+        vn_decode_array_size_unchecked(dec);
+        val->pResults = NULL;
+    }
+}
+
+static inline void
+vn_decode_VkPresentInfoKHR_temp(struct vn_cs_decoder *dec, VkPresentInfoKHR *val)
+{
+    VkStructureType stype;
+    vn_decode_VkStructureType(dec, &stype);
+    if (stype != VK_STRUCTURE_TYPE_PRESENT_INFO_KHR)
+        vn_cs_decoder_set_fatal(dec);
+
+    val->sType = stype;
+    val->pNext = vn_decode_VkPresentInfoKHR_pnext_temp(dec);
+    vn_decode_VkPresentInfoKHR_self_temp(dec, val);
+}
+
+static inline void
+vn_replace_VkPresentInfoKHR_handle_self(VkPresentInfoKHR *val)
+{
+    /* skip val->sType */
+    /* skip val->pNext */
+    /* skip val->waitSemaphoreCount */
+    if (val->pWaitSemaphores) {
+       for (uint32_t i = 0; i < val->waitSemaphoreCount; i++)
+            vn_replace_VkSemaphore_handle(&((VkSemaphore *)val->pWaitSemaphores)[i]);
+    }
+    /* skip val->swapchainCount */
+    if (val->pSwapchains) {
+       for (uint32_t i = 0; i < val->swapchainCount; i++)
+            vn_replace_VkSwapchainKHR_handle(&((VkSwapchainKHR *)val->pSwapchains)[i]);
+    }
+    /* skip val->pImageIndices */
+    /* skip val->pResults */
+}
+
+static inline void
+vn_replace_VkPresentInfoKHR_handle(VkPresentInfoKHR *val)
+{
+    struct VkBaseOutStructure *pnext = (struct VkBaseOutStructure *)val;
+
+    do {
+        switch ((int32_t)pnext->sType) {
+        case VK_STRUCTURE_TYPE_PRESENT_INFO_KHR:
+            vn_replace_VkPresentInfoKHR_handle_self((VkPresentInfoKHR *)pnext);
+            break;
+        case VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR:
+            vn_replace_VkDeviceGroupPresentInfoKHR_handle_self((VkDeviceGroupPresentInfoKHR *)pnext);
+            break;
+        default:
+            /* ignore unknown/unsupported struct */
+            break;
+        }
+        pnext = pnext->pNext;
+    } while (pnext);
+}
+
 /* struct VkSemaphoreSubmitInfo chain */
 
 static inline void *
@@ -1090,6 +1289,35 @@ static inline void vn_encode_vkQueueBindSparse_reply(struct vn_cs_encoder *enc, 
     /* skip args->fence */
 }
 
+static inline void vn_decode_vkQueuePresentKHR_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkQueuePresentKHR *args)
+{
+    vn_decode_VkQueue_lookup(dec, &args->queue);
+    if (vn_decode_simple_pointer(dec)) {
+        args->pPresentInfo = vn_cs_decoder_alloc_temp(dec, sizeof(*args->pPresentInfo));
+        if (!args->pPresentInfo) return;
+        vn_decode_VkPresentInfoKHR_temp(dec, (VkPresentInfoKHR *)args->pPresentInfo);
+    } else {
+        args->pPresentInfo = NULL;
+        vn_cs_decoder_set_fatal(dec);
+    }
+}
+
+static inline void vn_replace_vkQueuePresentKHR_args_handle(struct vn_command_vkQueuePresentKHR *args)
+{
+    vn_replace_VkQueue_handle(&args->queue);
+    if (args->pPresentInfo)
+        vn_replace_VkPresentInfoKHR_handle((VkPresentInfoKHR *)args->pPresentInfo);
+}
+
+static inline void vn_encode_vkQueuePresentKHR_reply(struct vn_cs_encoder *enc, const struct vn_command_vkQueuePresentKHR *args)
+{
+    vn_encode_VkCommandTypeEXT(enc, &(VkCommandTypeEXT){VK_COMMAND_TYPE_vkQueuePresentKHR_EXT});
+
+    vn_encode_VkResult(enc, &args->ret);
+    /* skip args->queue */
+    /* skip args->pPresentInfo */
+}
+
 static inline void vn_decode_vkQueueSubmit2_args_temp(struct vn_cs_decoder *dec, struct vn_command_vkQueueSubmit2 *args)
 {
     vn_decode_VkQueue_lookup(dec, &args->queue);
@@ -1230,6 +1458,43 @@ static inline void vn_dispatch_vkQueueBindSparse(struct vn_dispatch_context *ctx
         if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
             if (vn_cs_encoder_acquire(ctx->encoder)) {
                 vn_encode_vkQueueBindSparse_reply(ctx->encoder, &args);
+                vn_cs_encoder_release(ctx->encoder);
+            }
+        }
+    } else if (args.ret == VK_ERROR_DEVICE_LOST) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+    }
+
+    vn_cs_decoder_reset_temp_pool(ctx->decoder);
+}
+
+static inline void vn_dispatch_vkQueuePresentKHR(struct vn_dispatch_context *ctx, VkCommandFlagsEXT flags)
+{
+    struct vn_command_vkQueuePresentKHR args;
+
+    if (!ctx->dispatch_vkQueuePresentKHR) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    vn_decode_vkQueuePresentKHR_args_temp(ctx->decoder, &args);
+    if (!args.queue) {
+        vn_cs_decoder_set_fatal(ctx->decoder);
+        return;
+    }
+
+    if (!vn_cs_decoder_get_fatal(ctx->decoder))
+        ctx->dispatch_vkQueuePresentKHR(ctx, &args);
+
+#ifdef DEBUG
+    if (!vn_cs_decoder_get_fatal(ctx->decoder) && vn_dispatch_should_log_result(args.ret))
+        vn_dispatch_debug_log(ctx, "vkQueuePresentKHR returned %d", args.ret);
+#endif
+
+    if (flags & VK_COMMAND_GENERATE_REPLY_BIT_EXT) {
+        if (!vn_cs_decoder_get_fatal(ctx->decoder)) {
+            if (vn_cs_encoder_acquire(ctx->encoder)) {
+                vn_encode_vkQueuePresentKHR_reply(ctx->encoder, &args);
                 vn_cs_encoder_release(ctx->encoder);
             }
         }

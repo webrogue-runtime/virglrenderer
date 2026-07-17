@@ -34,6 +34,7 @@
 #include "vkr_render_pass.h"
 #include "vkr_ring.h"
 #include "vkr_transport.h"
+#include "vkr_webrogue.h"
 
 void
 vkr_context_add_instance(struct vkr_context *ctx,
@@ -112,6 +113,8 @@ vkr_context_init_dispatch(struct vkr_context *ctx)
    vkr_context_init_render_pass_dispatch(ctx);
    vkr_context_init_framebuffer_dispatch(ctx);
 
+   vkr_context_init_webrogue_dispatch(ctx);
+
    vkr_context_init_query_pool_dispatch(ctx);
 
    vkr_context_init_shader_module_dispatch(ctx);
@@ -189,6 +192,8 @@ static inline void
 vkr_context_free_resource(struct hash_entry *entry)
 {
    struct vkr_resource *res = entry->data;
+   // if (res->webrogue_mmap_ptr)
+   //    munmap(res->webrogue_mmap_ptr, res->size);
    if (res->fd_type == VIRGL_RESOURCE_FD_SHM)
       munmap(res->u.data, res->size);
    else if (res->u.fd >= 0)
@@ -226,7 +231,8 @@ vkr_context_import_resource_internal(struct vkr_context *ctx,
                                      uint64_t blob_size,
                                      enum virgl_resource_fd_type fd_type,
                                      int fd,
-                                     void *mmap_ptr)
+                                     void *mmap_ptr,
+                                     void *host_visible_ptr)
 {
    assert(!vkr_context_get_resource(ctx, res_id));
 
@@ -237,6 +243,8 @@ vkr_context_import_resource_internal(struct vkr_context *ctx,
    res->res_id = res_id;
    res->fd_type = fd_type;
    res->size = blob_size;
+   res->host_visible_ptr = host_visible_ptr;
+   res->webrogue_mem_id = 0;
 
    /* fd and mmap_ptr cannot be valid at the same time, but allowed to be -1 and NULL */
    assert(fd < 0 || !mmap_ptr);
@@ -266,7 +274,7 @@ vkr_context_import_resource_from_shm(struct vkr_context *ctx,
       return false;
 
    if (!vkr_context_import_resource_internal(ctx, res_id, blob_size,
-                                             VIRGL_RESOURCE_FD_SHM, -1, mmap_ptr)) {
+                                             VIRGL_RESOURCE_FD_SHM, -1, mmap_ptr, NULL)) {
       munmap(mmap_ptr, blob_size);
       return false;
    }
@@ -299,7 +307,7 @@ vkr_context_create_resource_from_shm(struct vkr_context *ctx,
    }
 
    if (!vkr_context_import_resource_internal(ctx, res_id, alloc_size,
-                                             VIRGL_RESOURCE_FD_SHM, -1, mmap_ptr)) {
+                                             VIRGL_RESOURCE_FD_SHM, -1, mmap_ptr, NULL)) {
       munmap(mmap_ptr, alloc_size);
       close(fd);
       return false;
@@ -345,15 +353,45 @@ vkr_context_create_resource_from_device_memory(struct vkr_context *ctx,
       }
    }
 
-   if (!vkr_context_import_resource_internal(ctx, res_id, blob_size, blob.type, res_fd,
-                                             NULL)) {
+if (!vkr_context_import_resource_internal(ctx, res_id, blob_size, blob.type, res_fd,
+                                              NULL, blob.mapped_ptr)) {
       if (res_fd >= 0)
          close(res_fd);
       close(blob.u.fd);
       return false;
    }
 
+   /* remember the backing device memory so the host pointer can be validated
+    * once the guest (possibly maliciously) frees the memory skipping unref. */
+   struct vkr_resource *res = vkr_context_get_resource(ctx, res_id);
+   if (res)
+      res->webrogue_mem_id = blob_id;
+
    *out_blob = blob;
+
+   return true;
+}
+
+static bool
+vkr_context_create_resource_from_webrogue_shm(struct vkr_context *ctx,
+                                     uint32_t res_id,
+                                     uint64_t blob_size,
+                                     struct virgl_context_blob *out_blob,
+                                     void* webrogue_shmem_ptr)
+{
+   assert(!vkr_context_get_resource(ctx, res_id));
+
+   if (!vkr_context_import_resource_internal(ctx, res_id, blob_size,
+                                             VIRGL_RESOURCE_BUFFER, -1, webrogue_shmem_ptr, NULL)) {
+      return false;
+   }
+
+   *out_blob = (struct virgl_context_blob){
+      .type = VIRGL_RESOURCE_BUFFER,
+      .u.fd = -1,
+      .map_info = VIRGL_RENDERER_MAP_CACHE_CACHED,
+      .mapped_ptr = webrogue_shmem_ptr,
+   };
 
    return true;
 }
@@ -366,6 +404,10 @@ vkr_context_create_resource(struct vkr_context *ctx,
                             uint32_t blob_flags,
                             struct virgl_context_blob *out_blob)
 {
+   void* webrogue_shmem_ptr = webrogue_virgl_pop_shmem(NULL);
+   if(webrogue_shmem_ptr) {
+      return vkr_context_create_resource_from_webrogue_shm(ctx, res_id, blob_size, out_blob, webrogue_shmem_ptr);
+   }
    /* blob_id == 0 does not refer to an existing VkDeviceMemory, but implies a shm
     * allocation. It is logically contiguous and it can be exported.
     */
@@ -386,7 +428,7 @@ vkr_context_import_resource(struct vkr_context *ctx,
    if (fd_type == VIRGL_RESOURCE_FD_SHM)
       return vkr_context_import_resource_from_shm(ctx, res_id, size, fd);
 
-   return vkr_context_import_resource_internal(ctx, res_id, size, fd_type, fd, NULL);
+   return vkr_context_import_resource_internal(ctx, res_id, size, fd_type, fd, NULL, NULL);
 }
 
 void
@@ -416,6 +458,31 @@ vkr_context_destroy_resource(struct vkr_context *ctx, uint32_t res_id)
    mtx_unlock(&ctx->ring_mutex);
 
    vkr_context_remove_resource(ctx, res_id);
+}
+
+void *
+vkr_context_get_blob_host_ptr(struct vkr_context *ctx, uint32_t res_id)
+{
+   struct vkr_resource *res = vkr_context_get_resource(ctx, res_id);
+   if (!res)
+      return NULL;
+
+   if (res->fd_type == VIRGL_RESOURCE_FD_SHM ||
+       res->fd_type == VIRGL_RESOURCE_BUFFER)
+      return res->u.data;
+
+   /* device-memory backed blob: the host pointer lives in the mapped device
+    * memory, which may have been freed behind our back (a guest that skips
+    * resource_unref). Return NULL in that case so the shadow blob drops the
+    * stale mapping instead of dereferencing freed memory. */
+   if (res->webrogue_mem_id) {
+      struct vkr_device_memory *mem =
+         vkr_context_get_object(ctx, res->webrogue_mem_id);
+      if (!mem || mem->base.type != VK_OBJECT_TYPE_DEVICE_MEMORY)
+         return NULL;
+   }
+
+   return res->host_visible_ptr;
 }
 
 void

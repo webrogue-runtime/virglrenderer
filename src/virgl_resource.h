@@ -37,6 +37,7 @@ enum virgl_resource_fd_type {
    VIRGL_RESOURCE_FD_OPAQUE,
    /* mmap()-able, usually memfd or shm */
    VIRGL_RESOURCE_FD_SHM,
+   VIRGL_RESOURCE_BUFFER,
 
    /**
     * An opaque handle can be something like a GEM handle, from which a

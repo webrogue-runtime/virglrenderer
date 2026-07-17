@@ -321,6 +321,22 @@
         ]
     },
     {
+        "filename": "vkr_webrogue_gen.h",
+        "objects": [
+            {
+                "vkr_type": "surface",
+                "vk_type": "VkSurfaceKHR",
+                "vk_enum": "VK_OBJECT_TYPE_SURFACE_KHR",
+                "generator": "simple-instance-object",
+                "create_cmd": "vkCreateSurfaceWEBROGUE",
+                "create_info": "pCreateInfo",
+                "create_obj": "pSurface",
+                "destroy_cmd": "vkDestroySurfaceKHR",
+                "destroy_obj": "surface"
+            }
+        ]
+    },
+    {
         "filename": "vkr_acceleration_structure_gen.h",
         "objects": [
             {

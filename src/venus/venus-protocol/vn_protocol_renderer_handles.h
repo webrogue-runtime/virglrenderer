@@ -996,4 +996,66 @@ vn_replace_VkTensorARM_handle(VkTensorARM *val)
     *val = (VkTensorARM)vn_cs_get_object_handle((const void **)val, VK_OBJECT_TYPE_TENSOR_ARM);
 }
 
+/* VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSurfaceKHR) */
+
+static inline void
+vn_encode_VkSurfaceKHR(struct vn_cs_encoder *enc, const VkSurfaceKHR *val)
+{
+    const uint64_t id = vn_cs_handle_load_id((const void **)val, VK_OBJECT_TYPE_SURFACE_KHR);
+    vn_encode_uint64_t(enc, &id);
+}
+
+static inline void
+vn_decode_VkSurfaceKHR(struct vn_cs_decoder *dec, VkSurfaceKHR *val)
+{
+    uint64_t id;
+    vn_decode_uint64_t(dec, &id);
+    vn_cs_handle_store_id((void **)val, id, VK_OBJECT_TYPE_SURFACE_KHR);
+}
+
+static inline void
+vn_decode_VkSurfaceKHR_lookup(struct vn_cs_decoder *dec, VkSurfaceKHR *val)
+{
+    uint64_t id;
+    vn_decode_uint64_t(dec, &id);
+    *val = (VkSurfaceKHR)(uintptr_t)vn_cs_decoder_lookup_object(dec, id, VK_OBJECT_TYPE_SURFACE_KHR);
+}
+
+static inline void
+vn_replace_VkSurfaceKHR_handle(VkSurfaceKHR *val)
+{
+    *val = (VkSurfaceKHR)vn_cs_get_object_handle((const void **)val, VK_OBJECT_TYPE_SURFACE_KHR);
+}
+
+/* VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSwapchainKHR) */
+
+static inline void
+vn_encode_VkSwapchainKHR(struct vn_cs_encoder *enc, const VkSwapchainKHR *val)
+{
+    const uint64_t id = vn_cs_handle_load_id((const void **)val, VK_OBJECT_TYPE_SWAPCHAIN_KHR);
+    vn_encode_uint64_t(enc, &id);
+}
+
+static inline void
+vn_decode_VkSwapchainKHR(struct vn_cs_decoder *dec, VkSwapchainKHR *val)
+{
+    uint64_t id;
+    vn_decode_uint64_t(dec, &id);
+    vn_cs_handle_store_id((void **)val, id, VK_OBJECT_TYPE_SWAPCHAIN_KHR);
+}
+
+static inline void
+vn_decode_VkSwapchainKHR_lookup(struct vn_cs_decoder *dec, VkSwapchainKHR *val)
+{
+    uint64_t id;
+    vn_decode_uint64_t(dec, &id);
+    *val = (VkSwapchainKHR)(uintptr_t)vn_cs_decoder_lookup_object(dec, id, VK_OBJECT_TYPE_SWAPCHAIN_KHR);
+}
+
+static inline void
+vn_replace_VkSwapchainKHR_handle(VkSwapchainKHR *val)
+{
+    *val = (VkSwapchainKHR)vn_cs_get_object_handle((const void **)val, VK_OBJECT_TYPE_SWAPCHAIN_KHR);
+}
+
 #endif /* VN_PROTOCOL_RENDERER_HANDLES_H */

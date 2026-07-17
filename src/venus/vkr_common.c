@@ -211,6 +211,14 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .IMG_filter_cubic = true,
    .NV_compute_shader_derivatives = true,
    .VALVE_mutable_descriptor_type = true,
+#if 1 // Webrogue
+
+   .KHR_surface = true,
+   .KHR_swapchain = true,
+   .KHR_get_surface_capabilities2 = true,
+   .WEBROGUE_surface = true,
+
+#endif
 };
 
 static const struct debug_named_value vkr_debug_options[] = {

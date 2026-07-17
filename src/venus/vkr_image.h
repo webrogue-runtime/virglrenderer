@@ -10,6 +10,8 @@
 
 struct vkr_image {
    struct vkr_object base;
+   bool swapchain_owned;
+   struct list_head swapchain_link;
 };
 VKR_DEFINE_OBJECT_CAST(image, VK_OBJECT_TYPE_IMAGE, VkImage)
 

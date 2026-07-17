@@ -180,7 +180,8 @@ vkr_renderer_create_resource(uint32_t ctx_id,
                              enum virgl_resource_fd_type *out_fd_type,
                              int *out_res_fd,
                              uint32_t *out_map_info,
-                             struct virgl_resource_vulkan_info *out_vulkan_info)
+                             struct virgl_resource_vulkan_info *out_vulkan_info,
+                             void **out_mapped_ptr)
 {
    TRACE_FUNC();
 
@@ -196,12 +197,12 @@ vkr_renderer_create_resource(uint32_t ctx_id,
       return false;
 
    assert(blob.type == VIRGL_RESOURCE_FD_SHM || blob.type == VIRGL_RESOURCE_FD_DMABUF ||
-          blob.type == VIRGL_RESOURCE_FD_OPAQUE);
+          blob.type == VIRGL_RESOURCE_FD_OPAQUE || blob.type == VIRGL_RESOURCE_BUFFER);
 
    *out_fd_type = blob.type;
    *out_res_fd = blob.u.fd;
    *out_map_info = blob.map_info;
-
+   *out_mapped_ptr = blob.mapped_ptr;
    if (blob.type == VIRGL_RESOURCE_FD_OPAQUE) {
       assert(out_vulkan_info);
       *out_vulkan_info = blob.vulkan_info;
@@ -239,4 +240,16 @@ vkr_renderer_destroy_resource(uint32_t ctx_id, uint32_t res_id)
    struct vkr_context *ctx = vkr_renderer_lookup_context(ctx_id);
    if (ctx)
       vkr_context_destroy_resource(ctx, res_id);
+}
+
+void *
+vkr_renderer_get_host_blob(uint32_t ctx_id, uint32_t res_id)
+{
+   TRACE_FUNC();
+
+   struct vkr_context *ctx = vkr_renderer_lookup_context(ctx_id);
+   if (!ctx)
+      return NULL;
+
+   return vkr_context_get_blob_host_ptr(ctx, res_id);
 }

@@ -28,11 +28,13 @@ vkr_library_unload(struct vulkan_library *lib);
 
 #else
 
+void* webrogueGetVulkan(void);
+
 static inline bool
 vkr_library_load(struct vulkan_library *lib)
 {
    lib->handle = NULL;
-   lib->GetInstanceProcAddr = vkGetInstanceProcAddr;
+   lib->GetInstanceProcAddr = webrogueGetVulkan();
    return true;
 }
 

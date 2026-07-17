@@ -479,6 +479,23 @@ typedef enum VkCommandTypeEXT {
     VK_COMMAND_TYPE_vkGetPhysicalDeviceDescriptorSizeEXT_EXT = 343,
     VK_COMMAND_TYPE_vkRegisterCustomBorderColorEXT_EXT = 344,
     VK_COMMAND_TYPE_vkUnregisterCustomBorderColorEXT_EXT = 345,
+    VK_COMMAND_TYPE_vkCreateSurfaceWEBROGUE_EXT = 500,
+    VK_COMMAND_TYPE_vkDestroySurfaceKHR_EXT = 501,
+    VK_COMMAND_TYPE_vkGetPhysicalDeviceSurfaceSupportKHR_EXT = 502,
+    VK_COMMAND_TYPE_vkGetPhysicalDeviceSurfaceCapabilitiesKHR_EXT = 503,
+    VK_COMMAND_TYPE_vkGetPhysicalDeviceSurfaceFormatsKHR_EXT = 504,
+    VK_COMMAND_TYPE_vkGetPhysicalDeviceSurfacePresentModesKHR_EXT = 505,
+    VK_COMMAND_TYPE_vkCreateSwapchainKHR_EXT = 506,
+    VK_COMMAND_TYPE_vkDestroySwapchainKHR_EXT = 507,
+    VK_COMMAND_TYPE_vkGetSwapchainImagesKHR_EXT = 508,
+    VK_COMMAND_TYPE_vkAcquireNextImageKHR_EXT = 509,
+    VK_COMMAND_TYPE_vkQueuePresentKHR_EXT = 510,
+    VK_COMMAND_TYPE_vkGetDeviceGroupPresentCapabilitiesKHR_EXT = 511,
+    VK_COMMAND_TYPE_vkGetDeviceGroupSurfacePresentModesKHR_EXT = 512,
+    VK_COMMAND_TYPE_vkGetPhysicalDevicePresentRectanglesKHR_EXT = 513,
+    VK_COMMAND_TYPE_vkAcquireNextImage2KHR_EXT = 514,
+    VK_COMMAND_TYPE_vkGetPhysicalDeviceSurfaceCapabilities2KHR_EXT = 515,
+    VK_COMMAND_TYPE_vkGetPhysicalDeviceSurfaceFormats2KHR_EXT = 516,
 } VkCommandTypeEXT;
 
 typedef enum VkCommandFlagBitsEXT {
@@ -1706,6 +1723,89 @@ struct vn_command_vkCmdExecuteCommands {
     const VkCommandBuffer* pCommandBuffers;
 };
 
+struct vn_command_vkDestroySurfaceKHR {
+    VkInstance instance;
+    VkSurfaceKHR surface;
+    const VkAllocationCallbacks* pAllocator;
+};
+
+struct vn_command_vkGetPhysicalDeviceSurfaceSupportKHR {
+    VkPhysicalDevice physicalDevice;
+    uint32_t queueFamilyIndex;
+    VkSurfaceKHR surface;
+    VkBool32* pSupported;
+
+    VkResult ret;
+};
+
+struct vn_command_vkGetPhysicalDeviceSurfaceCapabilitiesKHR {
+    VkPhysicalDevice physicalDevice;
+    VkSurfaceKHR surface;
+    VkSurfaceCapabilitiesKHR* pSurfaceCapabilities;
+
+    VkResult ret;
+};
+
+struct vn_command_vkGetPhysicalDeviceSurfaceFormatsKHR {
+    VkPhysicalDevice physicalDevice;
+    VkSurfaceKHR surface;
+    uint32_t* pSurfaceFormatCount;
+    VkSurfaceFormatKHR* pSurfaceFormats;
+
+    VkResult ret;
+};
+
+struct vn_command_vkGetPhysicalDeviceSurfacePresentModesKHR {
+    VkPhysicalDevice physicalDevice;
+    VkSurfaceKHR surface;
+    uint32_t* pPresentModeCount;
+    VkPresentModeKHR* pPresentModes;
+
+    VkResult ret;
+};
+
+struct vn_command_vkCreateSwapchainKHR {
+    VkDevice device;
+    const VkSwapchainCreateInfoKHR* pCreateInfo;
+    const VkAllocationCallbacks* pAllocator;
+    VkSwapchainKHR* pSwapchain;
+
+    VkResult ret;
+};
+
+struct vn_command_vkDestroySwapchainKHR {
+    VkDevice device;
+    VkSwapchainKHR swapchain;
+    const VkAllocationCallbacks* pAllocator;
+};
+
+struct vn_command_vkGetSwapchainImagesKHR {
+    VkDevice device;
+    VkSwapchainKHR swapchain;
+    uint32_t* pSwapchainImageCount;
+    VkImage* pSwapchainImages;
+
+    VkResult ret;
+};
+
+struct vn_command_vkAcquireNextImageKHR {
+    VkDevice device;
+    VkSwapchainKHR swapchain;
+    uint64_t timeout;
+    VkSemaphore semaphore;
+    VkFence fence;
+    uint32_t* pImageIndex;
+
+    VkResult ret;
+};
+
+struct vn_command_vkQueuePresentKHR {
+    VkQueue queue;
+    const VkPresentInfoKHR* pPresentInfo;
+
+    VkResult ret;
+};
+
 struct vn_command_vkGetPhysicalDeviceFeatures2 {
     VkPhysicalDevice physicalDevice;
     VkPhysicalDeviceFeatures2* pFeatures;
@@ -1865,6 +1965,29 @@ struct vn_command_vkCmdSetDeviceMask {
     uint32_t deviceMask;
 };
 
+struct vn_command_vkGetDeviceGroupPresentCapabilitiesKHR {
+    VkDevice device;
+    VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities;
+
+    VkResult ret;
+};
+
+struct vn_command_vkGetDeviceGroupSurfacePresentModesKHR {
+    VkDevice device;
+    VkSurfaceKHR surface;
+    VkDeviceGroupPresentModeFlagsKHR* pModes;
+
+    VkResult ret;
+};
+
+struct vn_command_vkAcquireNextImage2KHR {
+    VkDevice device;
+    const VkAcquireNextImageInfoKHR* pAcquireInfo;
+    uint32_t* pImageIndex;
+
+    VkResult ret;
+};
+
 struct vn_command_vkCmdDispatchBase {
     VkCommandBuffer commandBuffer;
     uint32_t baseGroupX;
@@ -1873,6 +1996,15 @@ struct vn_command_vkCmdDispatchBase {
     uint32_t groupCountX;
     uint32_t groupCountY;
     uint32_t groupCountZ;
+};
+
+struct vn_command_vkGetPhysicalDevicePresentRectanglesKHR {
+    VkPhysicalDevice physicalDevice;
+    VkSurfaceKHR surface;
+    uint32_t* pRectCount;
+    VkRect2D* pRects;
+
+    VkResult ret;
 };
 
 struct vn_command_vkCreateDescriptorUpdateTemplate {
@@ -1914,6 +2046,23 @@ struct vn_command_vkGetPhysicalDeviceMultisamplePropertiesEXT {
     VkPhysicalDevice physicalDevice;
     VkSampleCountFlagBits samples;
     VkMultisamplePropertiesEXT* pMultisampleProperties;
+};
+
+struct vn_command_vkGetPhysicalDeviceSurfaceCapabilities2KHR {
+    VkPhysicalDevice physicalDevice;
+    const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo;
+    VkSurfaceCapabilities2KHR* pSurfaceCapabilities;
+
+    VkResult ret;
+};
+
+struct vn_command_vkGetPhysicalDeviceSurfaceFormats2KHR {
+    VkPhysicalDevice physicalDevice;
+    const VkPhysicalDeviceSurfaceInfo2KHR* pSurfaceInfo;
+    uint32_t* pSurfaceFormatCount;
+    VkSurfaceFormat2KHR* pSurfaceFormats;
+
+    VkResult ret;
 };
 
 struct vn_command_vkGetBufferMemoryRequirements2 {
@@ -2626,6 +2775,15 @@ struct vn_command_vkCmdSetDepthClipNegativeOneToOneEXT {
     VkBool32 negativeOneToOne;
 };
 
+struct vn_command_vkCreateSurfaceWEBROGUE {
+    VkInstance instance;
+    const VkSurfaceCreateInfoWEBROGUE* pCreateInfo;
+    const VkAllocationCallbacks* pAllocator;
+    VkSurfaceKHR* pSurface;
+
+    VkResult ret;
+};
+
 struct vn_command_vkCreatePrivateDataSlot {
     VkDevice device;
     const VkPrivateDataSlotCreateInfo* pCreateInfo;
@@ -3204,6 +3362,16 @@ struct vn_dispatch_context {
     void (*dispatch_vkCmdNextSubpass)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdNextSubpass *args);
     void (*dispatch_vkCmdEndRenderPass)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdEndRenderPass *args);
     void (*dispatch_vkCmdExecuteCommands)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdExecuteCommands *args);
+    void (*dispatch_vkDestroySurfaceKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkDestroySurfaceKHR *args);
+    void (*dispatch_vkGetPhysicalDeviceSurfaceSupportKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceSurfaceSupportKHR *args);
+    void (*dispatch_vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceSurfaceCapabilitiesKHR *args);
+    void (*dispatch_vkGetPhysicalDeviceSurfaceFormatsKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceSurfaceFormatsKHR *args);
+    void (*dispatch_vkGetPhysicalDeviceSurfacePresentModesKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceSurfacePresentModesKHR *args);
+    void (*dispatch_vkCreateSwapchainKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkCreateSwapchainKHR *args);
+    void (*dispatch_vkDestroySwapchainKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkDestroySwapchainKHR *args);
+    void (*dispatch_vkGetSwapchainImagesKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetSwapchainImagesKHR *args);
+    void (*dispatch_vkAcquireNextImageKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkAcquireNextImageKHR *args);
+    void (*dispatch_vkQueuePresentKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkQueuePresentKHR *args);
     void (*dispatch_vkGetPhysicalDeviceFeatures2)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceFeatures2 *args);
     void (*dispatch_vkGetPhysicalDeviceProperties2)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceProperties2 *args);
     void (*dispatch_vkGetPhysicalDeviceFormatProperties2)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceFormatProperties2 *args);
@@ -3227,13 +3395,19 @@ struct vn_dispatch_context {
     void (*dispatch_vkBindBufferMemory2)(struct vn_dispatch_context *ctx, struct vn_command_vkBindBufferMemory2 *args);
     void (*dispatch_vkBindImageMemory2)(struct vn_dispatch_context *ctx, struct vn_command_vkBindImageMemory2 *args);
     void (*dispatch_vkCmdSetDeviceMask)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetDeviceMask *args);
+    void (*dispatch_vkGetDeviceGroupPresentCapabilitiesKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetDeviceGroupPresentCapabilitiesKHR *args);
+    void (*dispatch_vkGetDeviceGroupSurfacePresentModesKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetDeviceGroupSurfacePresentModesKHR *args);
+    void (*dispatch_vkAcquireNextImage2KHR)(struct vn_dispatch_context *ctx, struct vn_command_vkAcquireNextImage2KHR *args);
     void (*dispatch_vkCmdDispatchBase)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdDispatchBase *args);
+    void (*dispatch_vkGetPhysicalDevicePresentRectanglesKHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDevicePresentRectanglesKHR *args);
     void (*dispatch_vkCreateDescriptorUpdateTemplate)(struct vn_dispatch_context *ctx, struct vn_command_vkCreateDescriptorUpdateTemplate *args);
     void (*dispatch_vkDestroyDescriptorUpdateTemplate)(struct vn_dispatch_context *ctx, struct vn_command_vkDestroyDescriptorUpdateTemplate *args);
     void (*dispatch_vkUpdateDescriptorSetWithTemplate)(struct vn_dispatch_context *ctx, struct vn_command_vkUpdateDescriptorSetWithTemplate *args);
     void (*dispatch_vkCmdPushDescriptorSetWithTemplate)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdPushDescriptorSetWithTemplate *args);
     void (*dispatch_vkCmdSetSampleLocationsEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetSampleLocationsEXT *args);
     void (*dispatch_vkGetPhysicalDeviceMultisamplePropertiesEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceMultisamplePropertiesEXT *args);
+    void (*dispatch_vkGetPhysicalDeviceSurfaceCapabilities2KHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceSurfaceCapabilities2KHR *args);
+    void (*dispatch_vkGetPhysicalDeviceSurfaceFormats2KHR)(struct vn_dispatch_context *ctx, struct vn_command_vkGetPhysicalDeviceSurfaceFormats2KHR *args);
     void (*dispatch_vkGetBufferMemoryRequirements2)(struct vn_dispatch_context *ctx, struct vn_command_vkGetBufferMemoryRequirements2 *args);
     void (*dispatch_vkGetImageMemoryRequirements2)(struct vn_dispatch_context *ctx, struct vn_command_vkGetImageMemoryRequirements2 *args);
     void (*dispatch_vkGetImageSparseMemoryRequirements2)(struct vn_dispatch_context *ctx, struct vn_command_vkGetImageSparseMemoryRequirements2 *args);
@@ -3337,6 +3511,7 @@ struct vn_dispatch_context {
     void (*dispatch_vkCmdSetLineRasterizationModeEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetLineRasterizationModeEXT *args);
     void (*dispatch_vkCmdSetLineStippleEnableEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetLineStippleEnableEXT *args);
     void (*dispatch_vkCmdSetDepthClipNegativeOneToOneEXT)(struct vn_dispatch_context *ctx, struct vn_command_vkCmdSetDepthClipNegativeOneToOneEXT *args);
+    void (*dispatch_vkCreateSurfaceWEBROGUE)(struct vn_dispatch_context *ctx, struct vn_command_vkCreateSurfaceWEBROGUE *args);
     void (*dispatch_vkCreatePrivateDataSlot)(struct vn_dispatch_context *ctx, struct vn_command_vkCreatePrivateDataSlot *args);
     void (*dispatch_vkDestroyPrivateDataSlot)(struct vn_dispatch_context *ctx, struct vn_command_vkDestroyPrivateDataSlot *args);
     void (*dispatch_vkSetPrivateData)(struct vn_dispatch_context *ctx, struct vn_command_vkSetPrivateData *args);
