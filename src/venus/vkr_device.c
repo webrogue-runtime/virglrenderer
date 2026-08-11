@@ -79,6 +79,36 @@ vkr_device_init_proc_table(struct vkr_device *dev,
                                   api_version, &ext_table, &dev->proc_table);
 }
 
+static bool
+vkr_host_supports_extension(struct vn_physical_device_proc_table *vk,
+                            VkPhysicalDevice handle,
+                            const char *name)
+{
+   VkExtensionProperties *host_exts = NULL;
+   uint32_t count = 0;
+   bool found = false;
+
+   if (vk->EnumerateDeviceExtensionProperties(handle, NULL, &count, NULL) !=
+       VK_SUCCESS)
+      return false;
+
+   host_exts = malloc(sizeof(*host_exts) * count);
+   if (!host_exts)
+      return false;
+
+   if (vk->EnumerateDeviceExtensionProperties(handle, NULL, &count, host_exts) ==
+       VK_SUCCESS) {
+      for (uint32_t i = 0; i < count; i++) {
+         if (!strcmp(host_exts[i].extensionName, name)) {
+            found = true;
+            break;
+         }
+      }
+   }
+   free(host_exts);
+   return found;
+}
+
 static void
 vkr_dispatch_vkCreateDevice(struct vn_dispatch_context *dispatch,
                             struct vn_command_vkCreateDevice *args)
@@ -88,6 +118,8 @@ vkr_dispatch_vkCreateDevice(struct vn_dispatch_context *dispatch,
    struct vkr_physical_device *physical_dev =
       vkr_physical_device_from_handle(args->physicalDevice);
    struct vn_physical_device_proc_table *vk = &physical_dev->proc_table;
+
+   const char **exts = NULL;
 
    /* there can be at most two members sharing a queueFamilyIndex (one
     * protected-capable, one not), in which case their summed queueCount must
@@ -129,25 +161,32 @@ vkr_dispatch_vkCreateDevice(struct vn_dispatch_context *dispatch,
          return;
    }
 
-   /* append extensions for our own use */
-   const char **exts = NULL;
-   uint32_t ext_count = args->pCreateInfo->enabledExtensionCount;
-   ext_count += physical_dev->EXT_external_memory_metal;
-   ext_count += physical_dev->EXT_metal_objects;
-   ext_count += physical_dev->KHR_portability_subset;
-   ext_count += physical_dev->KHR_external_memory_fd;
-   ext_count += physical_dev->EXT_external_memory_dma_buf;
-   ext_count += physical_dev->KHR_external_fence_fd;
-   if (ext_count > args->pCreateInfo->enabledExtensionCount) {
-      exts = malloc(sizeof(*exts) * ext_count);
+   /* Rebuild the extension list: strip guest extensions the host driver does
+    * not actually support (the KHR/EXT external-*_fd family is Linux-only and
+    * no Windows Vulkan driver implements it), and append extensions venus
+    * needs for its own use.  Without the stripping, the host rejects
+    * vkCreateDevice outright and the guest has no way to recover. */
+   {
+      uint32_t ext_count = 0;
+      uint32_t max_count = args->pCreateInfo->enabledExtensionCount;
+      max_count += physical_dev->EXT_external_memory_metal;
+      max_count += physical_dev->EXT_metal_objects;
+      max_count += physical_dev->KHR_portability_subset;
+      max_count += physical_dev->KHR_external_memory_fd;
+      max_count += physical_dev->EXT_external_memory_dma_buf;
+      max_count += physical_dev->KHR_external_fence_fd;
+
+      exts = malloc(sizeof(*exts) * (max_count + 1));
       if (!exts) {
          args->ret = VK_ERROR_OUT_OF_HOST_MEMORY;
          return;
       }
 
-      ext_count = 0;
-      for (uint32_t i = 0; i < args->pCreateInfo->enabledExtensionCount; i++)
-         exts[ext_count++] = args->pCreateInfo->ppEnabledExtensionNames[i];
+      for (uint32_t i = 0; i < args->pCreateInfo->enabledExtensionCount; i++) {
+         const char *name = args->pCreateInfo->ppEnabledExtensionNames[i];
+         if (vkr_host_supports_extension(vk, physical_dev->base.handle.physical_device, name))
+            exts[ext_count++] = name;
+      }
 
       if (physical_dev->EXT_external_memory_metal)
          exts[ext_count++] = "VK_EXT_external_memory_metal";
@@ -161,6 +200,7 @@ vkr_dispatch_vkCreateDevice(struct vn_dispatch_context *dispatch,
          exts[ext_count++] = "VK_EXT_external_memory_dma_buf";
       if (physical_dev->KHR_external_fence_fd)
          exts[ext_count++] = "VK_KHR_external_fence_fd";
+      exts[ext_count] = NULL;
 
       ((VkDeviceCreateInfo *)args->pCreateInfo)->ppEnabledExtensionNames = exts;
       ((VkDeviceCreateInfo *)args->pCreateInfo)->enabledExtensionCount = ext_count;

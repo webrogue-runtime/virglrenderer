@@ -123,6 +123,31 @@ struct {
 };
 
 
+/* we expect a string like tweak1:value,tweak2:value */
+#ifndef HAVE_STRTOK_R
+static char *
+vrend_strtok(char *str, const char *delim, char **saveptr)
+{
+   char *begin;
+   char *end;
+   if (!str)
+      str = *saveptr;
+   begin = str + strspn(str, delim);
+   if (*begin == '\0') {
+      *saveptr = begin;
+      return NULL;
+   }
+   end = begin + strcspn(begin, delim);
+   *saveptr = end;
+   if (*end == '\0')
+      return begin;
+   *end = '\0';
+   *saveptr = end + 1;
+   return begin;
+}
+#define strtok_r(str, delim, saveptr) vrend_strtok(str, delim, saveptr)
+#endif
+
 void vrend_set_tweak_from_env(struct vrend_context_tweaks *ctx)
 {
    char *tweaks = getenv("VREND_TWEAK");

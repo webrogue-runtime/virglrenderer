@@ -589,11 +589,18 @@ vkr_device_memory_export_blob(struct vkr_device_memory *mem,
       return out_blob->u.fd >= 0;
    }
 
-   const bool can_export_dma_buf = mem->valid_fd_types & (1 << VIRGL_RESOURCE_FD_DMABUF);
-   const bool can_export_opaque = mem->valid_fd_types & (1 << VIRGL_RESOURCE_FD_OPAQUE);
    enum virgl_resource_fd_type fd_type;
    VkExternalMemoryHandleTypeFlagBits handle_type;
    struct virgl_resource_vulkan_info vulkan_info;
+#if 1 // Webrogue: device memory is shared with the guest through the host
+   /* mapping returned below (mapped_ptr) — no exportable fd is required.  The
+    * guest's Venus driver reads the blob via the shared host mapping; reply
+    * with the same fd_type marker Linux uses so the proxy accepts the reply
+    * (the fd itself stays -1). */
+   fd_type = VIRGL_RESOURCE_FD_DMABUF;
+#else
+   const bool can_export_dma_buf = mem->valid_fd_types & (1 << VIRGL_RESOURCE_FD_DMABUF);
+   const bool can_export_opaque = mem->valid_fd_types & (1 << VIRGL_RESOURCE_FD_OPAQUE);
    if (blob_flags & VIRGL_RENDERER_BLOB_FLAG_USE_CROSS_DEVICE) {
       if (!can_export_dma_buf) {
          vkr_log("mem cannot export to dma_buf for cross device blob sharing");
@@ -624,6 +631,7 @@ vkr_device_memory_export_blob(struct vkr_device_memory *mem,
       vkr_log("mem is not exportable");
       return false;
    }
+#endif
 
    void* mapped_ptr = NULL;
    int fd;
@@ -648,7 +656,6 @@ vkr_device_memory_export_blob(struct vkr_device_memory *mem,
       }
    } else if (mem->gbm_bo) {
       assert(handle_type == VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
-      assert(can_export_dma_buf && !can_export_opaque);
 
       fd = vkr_gbm_bo_get_fd(mem->gbm_bo);
       if (fd < 0) {

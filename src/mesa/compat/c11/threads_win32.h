@@ -369,46 +369,12 @@ thrd_create(thrd_t *thr, thrd_start_t func, void *arg)
     return thrd_success;
 }
 
-#if 0
 // 7.25.5.2
 static inline thrd_t
 thrd_current(void)
 {
-    HANDLE hCurrentThread;
-    BOOL bRet;
-
-    /* GetCurrentThread() returns a pseudo-handle, which we need
-     * to pass to DuplicateHandle(). Only the resulting handle can be used
-     * from other threads.
-     *
-     * Note that neither handle can be compared to the one by thread_create.
-     * Only the thread IDs - as returned by GetThreadId() and GetCurrentThreadId()
-     * can be compared directly.
-     *
-     * Other potential solutions would be:
-     * - define thrd_t as a thread Ids, but this would mean we'd need to OpenThread for many operations
-     * - use malloc'ed memory for thrd_t. This would imply using TLS for current thread.
-     *
-     * Neither is particularly nice.
-     *
-     * Life would be much easier if C11 threads had different abstractions for
-     * threads and thread IDs, just like C++11 threads does...
-     */
-
-    bRet = DuplicateHandle(GetCurrentProcess(), // source process (pseudo) handle
-                           GetCurrentThread(), // source (pseudo) handle
-                           GetCurrentProcess(), // target process
-                           &hCurrentThread, // target handle
-                           0,
-                           FALSE,
-                           DUPLICATE_SAME_ACCESS);
-    assert(bRet);
-    if (!bRet) {
-	hCurrentThread = GetCurrentThread();
-    }
-    return hCurrentThread;
+    return GetCurrentThread();
 }
-#endif
 
 // 7.25.5.3
 static inline int

@@ -92,19 +92,19 @@ struct blit_swizzle_and_type {
 
 #pragma pack(push,1)
 struct PACKED blit_prog_key {
-   bool is_color: 1;
-   bool is_msaa: 1;
-   bool manual_srgb_decode: 1;
-   bool manual_srgb_encode: 1;
-   enum pipe_texture_target pipe_tex_target: 4;
-   uint8_t num_samples;
+   unsigned is_color: 1;
+   unsigned is_msaa: 1;
+   unsigned manual_srgb_decode: 1;
+   unsigned manual_srgb_encode: 1;
+   unsigned pipe_tex_target: 4;
+   unsigned num_samples: 8;
    struct {
-      bool has_swizzle: 1;
-      enum virgl_formats src_format: 9;
-      enum pipe_swizzle swizzle1: 3;
-      enum pipe_swizzle swizzle2: 3;
-      enum pipe_swizzle swizzle3: 3;
-      enum pipe_swizzle swizzle4: 3;
+      unsigned has_swizzle: 1;
+      unsigned src_format: 9;
+      unsigned swizzle1: 3;
+      unsigned swizzle2: 3;
+      unsigned swizzle3: 3;
+      unsigned swizzle4: 3;
    } texcol;
 };
 #pragma pack(pop)

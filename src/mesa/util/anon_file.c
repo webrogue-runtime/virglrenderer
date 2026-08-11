@@ -35,6 +35,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#ifdef _WIN32
+#include <io.h>
+#include <sys/stat.h>
+#endif
+
 #if defined(HAVE_MEMFD_CREATE) || defined(__FreeBSD__) ||                      \
     defined(__OpenBSD__) || defined(__APPLE__)
 #include <sys/mman.h>
@@ -46,7 +51,8 @@
 #endif
 
 #if !(defined(__FreeBSD__) || defined(HAVE_MEMFD_CREATE) ||                    \
-      defined(HAVE_MKOSTEMP) || defined(__ANDROID__) || defined(__APPLE__))
+      defined(HAVE_MKOSTEMP) || defined(__ANDROID__) || defined(__APPLE__) ||  \
+      defined(_WIN32))
 static int
 set_cloexec_or_close(int fd)
 {
@@ -71,7 +77,7 @@ err:
 #endif
 
 #if !(defined(__FreeBSD__) || defined(HAVE_MEMFD_CREATE) ||                    \
-      defined(__ANDROID__) || defined(__APPLE__))
+      defined(__ANDROID__) || defined(__APPLE__) || defined(_WIN32))
 static int
 create_tmpfile_cloexec(char *tmpname)
 {
@@ -152,6 +158,26 @@ os_create_anonymous_file(off_t size, const char *debug_name)
    fd = shm_mkstemp(template);
    if (fd != -1)
       shm_unlink(template);
+#elif defined(_WIN32)
+   {
+      char tmp_path[_MAX_PATH];
+      const char *tmp_dir = getenv("TEMP");
+      static unsigned int __anon_counter;
+      if (!tmp_dir)
+         tmp_dir = getenv("TMP");
+      if (!tmp_dir)
+         tmp_dir = ".";
+      fd = -1;
+      for (unsigned int i = 0; i < 1000; i++) {
+         snprintf(tmp_path, sizeof(tmp_path), "%s\\mesa-shared-%d-%u", tmp_dir,
+                  (int)getpid(), __anon_counter++);
+         fd = _open(tmp_path,
+                    _O_RDWR | _O_CREAT | _O_EXCL | _O_BINARY | _O_TEMPORARY,
+                    _S_IREAD | _S_IWRITE);
+         if (fd >= 0 || errno != EEXIST)
+            break;
+      }
+   }
 #else
    const char *path;
    char *name;

@@ -344,6 +344,41 @@ vkr_physical_device_init_extensions(struct vkr_physical_device *physical_dev)
       }
    }
 
+#ifdef _WIN32
+   /* No Windows Vulkan driver implements the fd-based external extensions,
+    * but the guest's Venus driver requires them to be advertised (WSI sets
+    * up sync-fd semaphore import and blob fd export through them).  The fd
+    * semantics are handled internally by virglrenderer/webrogue, and
+    * vkr_dispatch_vkCreateDevice strips them back out of the host-facing
+    * extension list, so advertising them is safe. */
+   static const char *const win32_fd_exts[] = {
+      VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME,
+      VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME,
+      VK_KHR_EXTERNAL_FENCE_FD_EXTENSION_NAME,
+   };
+   for (size_t k = 0; k < sizeof(win32_fd_exts) / sizeof(win32_fd_exts[0]); k++) {
+      bool found = false;
+      for (uint32_t i = 0; i < advertised_count; i++) {
+         if (!strcmp(exts[i].extensionName, win32_fd_exts[k])) {
+            found = true;
+            break;
+         }
+      }
+      if (found)
+         continue;
+      VkExtensionProperties *new_exts =
+         realloc(exts, sizeof(*exts) * (advertised_count + 1));
+      if (new_exts) {
+         exts = new_exts;
+         strcpy(new_exts[advertised_count].extensionName, win32_fd_exts[k]);
+         new_exts[advertised_count].specVersion = 1;
+         advertised_count++;
+      } else {
+         vkr_log("failed to inject %s", win32_fd_exts[k]);
+      }
+   }
+#endif
+
    physical_dev->extensions = realloc(exts, sizeof(*exts) * advertised_count);
    physical_dev->extension_count = advertised_count;
 }
@@ -804,6 +839,12 @@ vkr_dispatch_vkGetPhysicalDeviceExternalSemaphoreProperties(
    vk->GetPhysicalDeviceExternalSemaphoreProperties(args->physicalDevice,
                                                     args->pExternalSemaphoreInfo,
                                                     args->pExternalSemaphoreProperties);
+// Webrogue
+#if 1
+   args->pExternalSemaphoreProperties->exportFromImportedHandleTypes = 0;
+   args->pExternalSemaphoreProperties->compatibleHandleTypes = 0;
+   args->pExternalSemaphoreProperties->externalSemaphoreFeatures = 0;
+#endif
 }
 
 static void

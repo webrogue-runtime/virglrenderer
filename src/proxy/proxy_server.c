@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #include "server/render_protocol.h"
 
@@ -29,10 +30,12 @@ void
 proxy_server_destroy(struct proxy_server *srv)
 {
    if (srv->pid >= 0) {
+#ifndef _WIN32
       kill(srv->pid, SIGKILL);
 
       siginfo_t siginfo = { 0 };
       waitid(P_PID, srv->pid, &siginfo, WEXITED);
+#endif
    }
 
    if (srv->client_fd >= 0)

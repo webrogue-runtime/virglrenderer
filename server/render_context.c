@@ -6,6 +6,7 @@
 #include "render_context.h"
 
 #include <sys/mman.h>
+#include <unistd.h>
 
 #include "util/u_thread.h"
 #include "virgl_util.h"
