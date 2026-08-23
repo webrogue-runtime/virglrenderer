@@ -280,16 +280,44 @@ vkr_ring_thread(void *arg)
       if (wait) {
          TRACE_SCOPE("ring idle");
 
+         /* webrogue: on this custom transport the guest writes ring commands
+          * and the notify is best-effort (trylock - it can be dropped when the
+          * ring mutex is contended). The ring idle wait MUST periodically wake
+          * to re-check the tail, otherwise a dropped notify leaves the ring
+          * asleep forever while the guest blocks in ring seqno wait. Break out
+          * on timeout (not wait again): notify only accelerates the wake. */
          mtx_lock(&ring->mutex);
+         const uint64_t ns_per_sec = 1000000000ULL;
          while (ring->started && !ring->pending_notify) {
-            ret = cnd_wait(&ring->cond, &ring->mutex);
-            if (ret != thrd_success) {
-               vkr_log("%s: ring idle cnd_wait has failed(%d)", __func__, ret);
+            struct timespec now_ts, timeout_ts;
+            if (clock_gettime(CLOCK_REALTIME, &now_ts) != 0) {
+               ret = cnd_wait(&ring->cond, &ring->mutex);
+               if (ret != thrd_success) {
+                  vkr_log("%s: ring idle cnd_wait has failed(%d)", __func__, ret);
+                  ret = -EINVAL;
+                  goto out;
+               }
+               continue;
+            }
+            timeout_ts.tv_sec = now_ts.tv_sec;
+            timeout_ts.tv_nsec = now_ts.tv_nsec + 20ULL * 1000000ULL;
+            if (timeout_ts.tv_nsec >= (long)ns_per_sec) {
+               timeout_ts.tv_sec += 1;
+               timeout_ts.tv_nsec -= (long)ns_per_sec;
+            }
+            ret = cnd_timedwait(&ring->cond, &ring->mutex, &timeout_ts);
+            if (ret != thrd_success && ret != thrd_busy && ret != thrd_timeout) {
+               vkr_log("%s: ring idle cnd_timedwait has failed(%d)", __func__, ret);
                ret = -EINVAL;
                goto out;
             }
+            if (ret == thrd_busy || ret == thrd_timeout)
+               break;
          }
          vkr_ring_unset_status_bits(ring, VK_RING_STATUS_IDLE_BIT_MESA);
+         /* consume the notify flag so a timeout wake doesn't re-enter idle
+          * wait only to spin on it; the tail check below is authoritative. */
+         atomic_store_explicit(&ring->pending_notify, false, memory_order_seq_cst);
          mtx_unlock(&ring->mutex);
 
          if (!ring->started)
@@ -385,10 +413,6 @@ vkr_ring_notify(struct vkr_ring *ring)
    ring->pending_notify = true;
    cnd_signal(&ring->cond);
    mtx_unlock(&ring->mutex);
-
-   {
-      TRACE_SCOPE("ring notify done");
-   }
 }
 
 bool
@@ -421,17 +445,8 @@ vkr_ring_submit_virtqueue_seqno(struct vkr_ring *ring, uint64_t seqno)
    mtx_lock(&ring->mutex);
    ring->virtqueue_seqno = seqno;
 
-   /* There are 3 cases:
-    * 1. ring is not waiting on the cond thus no-op
-    * 2. ring is idle and then wakes up earlier
-    * 3. ring is waiting for roundtrip and then checks seqno again
-    */
    cnd_signal(&ring->cond);
    mtx_unlock(&ring->mutex);
-
-   {
-      TRACE_SCOPE("submit vq seqno done");
-   }
 }
 
 bool
