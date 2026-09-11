@@ -799,9 +799,13 @@ int virgl_renderer_init(void *cookie, int flags, struct virgl_renderer_callbacks
 
    int ret;
 
-   /* VIRGL_RENDERER_THREAD_SYNC is a hint and can be silently ignored */
+   /* VIRGL_RENDERER_THREAD_SYNC is a hint and can be silently ignored.
+    * ASYNC_FENCE_CB depends on the fence eventfd just the same: without it
+    * there is no sync thread to fire the callbacks and virgl_renderer_poll
+    * would skip per-context retirement, leaving fences retired by nobody.
+    */
    if (!has_eventfd() || getenv("VIRGL_DISABLE_MT"))
-      flags &= ~VIRGL_RENDERER_THREAD_SYNC;
+      flags &= ~(VIRGL_RENDERER_THREAD_SYNC | VIRGL_RENDERER_ASYNC_FENCE_CB);
 
    if (state.client_initialized && (state.cookie != cookie ||
                                     state.flags != flags ||
