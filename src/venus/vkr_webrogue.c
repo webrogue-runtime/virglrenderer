@@ -67,9 +67,38 @@ vkr_dispatch_vkGetPhysicalDeviceSurfaceFormats2KHR(
    struct vn_physical_device_proc_table *vk = &physical_dev->proc_table;
 
    vn_replace_vkGetPhysicalDeviceSurfaceFormats2KHR_args_handle(args);
-   args->ret = vk->GetPhysicalDeviceSurfaceFormats2KHR(
-      args->physicalDevice, args->pSurfaceInfo, args->pSurfaceFormatCount,
-      args->pSurfaceFormats);
+   if (vk->GetPhysicalDeviceSurfaceFormats2KHR) {
+      args->ret = vk->GetPhysicalDeviceSurfaceFormats2KHR(
+         args->physicalDevice, args->pSurfaceInfo, args->pSurfaceFormatCount,
+         args->pSurfaceFormats);
+   } else {
+      if (args->pSurfaceInfo->pNext) {
+         args->ret = VK_ERROR_EXTENSION_NOT_PRESENT;
+         return;
+      }
+      if (!args->pSurfaceFormats) {
+         args->ret = vk->GetPhysicalDeviceSurfaceFormatsKHR(
+            args->physicalDevice, args->pSurfaceInfo->surface, args->pSurfaceFormatCount, NULL);
+         return;
+      }
+      struct VkSurfaceFormatKHR *surface_formats = malloc(sizeof(struct VkSurfaceFormatKHR) * (*args->pSurfaceFormatCount));
+      if (!surface_formats) {
+         args->ret = VK_ERROR_OUT_OF_HOST_MEMORY;
+         return;
+      }
+      int originalSurfaceFormatCount = *args->pSurfaceFormatCount;
+      args->ret = vk->GetPhysicalDeviceSurfaceFormatsKHR(
+         args->physicalDevice, args->pSurfaceInfo->surface, args->pSurfaceFormatCount,
+         surface_formats);
+      if ((args->ret == VK_SUCCESS || args->ret == VK_INCOMPLETE)) {
+         for (uint32_t i = 0; i < originalSurfaceFormatCount; i++) {
+            args->pSurfaceFormats[i].sType = VK_STRUCTURE_TYPE_SURFACE_FORMAT_2_KHR;
+            args->pSurfaceFormats[i].pNext = NULL;
+            args->pSurfaceFormats[i].surfaceFormat = surface_formats[i];
+         }
+      }
+      free(surface_formats);
+   }
 }
 
 static void
@@ -96,8 +125,17 @@ vkr_dispatch_vkGetPhysicalDeviceSurfaceCapabilities2KHR(
    struct vn_physical_device_proc_table *vk = &physical_dev->proc_table;
 
    vn_replace_vkGetPhysicalDeviceSurfaceCapabilities2KHR_args_handle(args);
-   args->ret = vk->GetPhysicalDeviceSurfaceCapabilities2KHR(
-      args->physicalDevice, args->pSurfaceInfo, args->pSurfaceCapabilities);
+   if(vk->GetPhysicalDeviceSurfaceCapabilities2KHR) {
+      args->ret = vk->GetPhysicalDeviceSurfaceCapabilities2KHR(
+         args->physicalDevice, args->pSurfaceInfo, args->pSurfaceCapabilities);
+   } else {
+      if (args->pSurfaceInfo->pNext) {
+         args->ret = VK_ERROR_EXTENSION_NOT_PRESENT;
+         return;
+      }
+      args->ret = vk->GetPhysicalDeviceSurfaceCapabilitiesKHR(
+         args->physicalDevice, args->pSurfaceInfo->surface, &args->pSurfaceCapabilities->surfaceCapabilities);
+   }
 }
 
 static void
