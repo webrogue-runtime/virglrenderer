@@ -106,7 +106,7 @@ static const struct vn_info_extension_table vkr_extension_table = {
    .KHR_shader_float_controls2 = true,
    .KHR_shader_subgroup_rotate = true,
    .KHR_vertex_attribute_divisor = true,
-   .EXT_host_image_copy = true,
+   .EXT_host_image_copy = false,
    .EXT_pipeline_protected_access = true,
    .EXT_pipeline_robustness = true,
    /* KHR extensions */

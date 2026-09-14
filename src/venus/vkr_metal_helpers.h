@@ -18,7 +18,7 @@ struct vkr_mtl_shm {
    void *mtl_buffer;
 };
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && 0
 
 #include <stdint.h>
 

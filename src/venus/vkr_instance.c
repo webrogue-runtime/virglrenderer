@@ -177,7 +177,7 @@ vkr_dispatch_vkCreateInstance(struct vn_dispatch_context *dispatch,
       create_info->pNext = &messenger_create_info;
    }
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && 0
    if (vkr_library_has_portability_enumeration(
           vk->EnumerateInstanceExtensionProperties)) {
       create_info->flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;

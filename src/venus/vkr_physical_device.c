@@ -283,7 +283,7 @@ vkr_physical_device_init_extensions(struct vkr_physical_device *physical_dev)
       else if (!strcmp(props->extensionName, "VK_KHR_external_fence_fd"))
          physical_dev->KHR_external_fence_fd = true;
       else if (!strcmp(props->extensionName, "VK_EXT_external_memory_metal"))
-         physical_dev->EXT_external_memory_metal = true;
+         physical_dev->EXT_external_memory_metal = false;
       else if (!strcmp(props->extensionName, "VK_EXT_metal_objects"))
          physical_dev->EXT_metal_objects = true;
       else if (!strcmp(props->extensionName, "VK_KHR_portability_subset"))

@@ -86,7 +86,7 @@ vkr_dispatch_vkGetPhysicalDeviceSurfaceFormats2KHR(
          args->ret = VK_ERROR_OUT_OF_HOST_MEMORY;
          return;
       }
-      int originalSurfaceFormatCount = *args->pSurfaceFormatCount;
+      uint32_t originalSurfaceFormatCount = *args->pSurfaceFormatCount;
       args->ret = vk->GetPhysicalDeviceSurfaceFormatsKHR(
          args->physicalDevice, args->pSurfaceInfo->surface, args->pSurfaceFormatCount,
          surface_formats);

@@ -316,9 +316,9 @@ vkr_dispatch_vkAllocateMemory(struct vn_dispatch_context *dispatch,
          !(export_info->handleTypes & VK_EXTERNAL_MEMORY_HANDLE_TYPE_DMA_BUF_BIT_EXT);
       const bool force_gbm_import = !!physical_dev->gbm_device;
       const bool force_udmabuf_import = physical_dev->udmabuf_dev_fd >= 0;
-      // if(true) { // Webrogue
+      if(true) { // Webrogue
 
-      // } else 
+      } else 
       if (!(force_gbm_import || force_udmabuf_import) &&
           (physical_dev->is_dma_buf_fd_export_supported ||
            (physical_dev->is_opaque_fd_export_supported && no_dma_buf_export))) {
