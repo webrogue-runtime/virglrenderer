@@ -196,7 +196,9 @@ vkr_context_free_resource(struct hash_entry *entry)
    //    munmap(res->webrogue_mmap_ptr, res->size);
    if (res->fd_type == VIRGL_RESOURCE_FD_SHM)
       munmap(res->u.data, res->size);
-   else if (res->u.fd >= 0)
+   else if (res->fd_type == VIRGL_RESOURCE_BUFFER) {
+      // ignore
+   } else if (res->u.fd >= 0)
       close(res->u.fd);
    free(res);
 }
