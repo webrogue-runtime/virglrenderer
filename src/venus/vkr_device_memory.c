@@ -556,6 +556,12 @@ vkr_device_memory_export_blob(struct vkr_device_memory *mem,
 {
    TRACE_FUNC();
 
+   if (!blob_size || blob_size > mem->allocation_size) {
+      vkr_log("blob size %" PRIu64 " exceeds device memory allocation size %" PRIu64,
+              blob_size, mem->allocation_size);
+      return false;
+   }
+
    /* a memory can only be exported once; we don't want two resources to point
     * to the same storage.
     */
@@ -591,7 +597,7 @@ vkr_device_memory_export_blob(struct vkr_device_memory *mem,
 
    enum virgl_resource_fd_type fd_type;
    VkExternalMemoryHandleTypeFlagBits handle_type;
-   struct virgl_resource_vulkan_info vulkan_info;
+   struct virgl_resource_vulkan_info vulkan_info = {0};
 #if 1 // Webrogue: device memory is shared with the guest through the host
    /* mapping returned below (mapped_ptr) — no exportable fd is required.  The
     * guest's Venus driver reads the blob via the shared host mapping; reply

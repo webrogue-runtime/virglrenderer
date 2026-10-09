@@ -216,18 +216,21 @@ vkr_dispatch_vkGetSwapchainImagesKHR(
    struct vn_dispatch_context *dispatch,
    struct vn_command_vkGetSwapchainImagesKHR *args)
 {
+   struct vkr_context *ctx = dispatch->data;
    struct vkr_device *dev = vkr_device_from_handle(args->device);
    struct vkr_swapchain *swapchain = vkr_swapchain_from_handle(args->swapchain);
    struct vn_device_proc_table *vk = &dev->proc_table;
    VkImage *images = NULL;
-   uint32_t image_count = args->pSwapchainImageCount
-                             ? *args->pSwapchainImageCount
-                             : 0;
+   if (!args->pSwapchainImageCount) {
+      vkr_context_set_fatal(ctx);
+      return;
+   }
+   const uint32_t image_capacity = *args->pSwapchainImageCount;
 
    vn_replace_vkGetSwapchainImagesKHR_args_handle(args);
 
-   if (args->pSwapchainImages && image_count) {
-      images = calloc(image_count, sizeof(*images));
+   if (args->pSwapchainImages && image_capacity) {
+      images = calloc(image_capacity, sizeof(*images));
       if (!images) {
          args->ret = VK_ERROR_OUT_OF_HOST_MEMORY;
          return;
@@ -235,9 +238,26 @@ vkr_dispatch_vkGetSwapchainImagesKHR(
    }
 
    args->ret = vk->GetSwapchainImagesKHR(
-      args->device, args->swapchain, args->pSwapchainImageCount, images);
-   if (args->ret == VK_SUCCESS || args->ret == VK_INCOMPLETE) {
-      struct vkr_context *ctx = dispatch->data;
+       args->device, args->swapchain, args->pSwapchainImageCount, images);
+   if ((args->ret == VK_SUCCESS || args->ret == VK_INCOMPLETE) && args->pSwapchainImages) {
+      const uint32_t image_count = *args->pSwapchainImageCount;
+      if (image_count > image_capacity) {
+         vkr_log("GetSwapchainImagesKHR returned %u images for capacity %u",
+                 image_count, image_capacity);
+         vkr_context_set_fatal(ctx);
+         free(images);
+         return;
+      }
+
+      for (uint32_t i = 0; i < image_count; i++) {
+         if (images[i] == VK_NULL_HANDLE) {
+            vkr_log("GetSwapchainImagesKHR returned a null image at index %u", i);
+            vkr_context_set_fatal(ctx);
+            free(images);
+            return;
+         }
+      }
+
       for (uint32_t i = 0; i < image_count; i++) {
          struct vkr_image *obj = vkr_context_alloc_object(
             ctx, sizeof(*obj), VK_OBJECT_TYPE_IMAGE,
